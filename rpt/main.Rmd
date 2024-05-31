@@ -8,10 +8,8 @@ output:
     number_sections: true
   html_document:
     toc: false
-    number_sections: true
   word_document:
     toc: false
-    number_sections: true
 ---
 
 \
@@ -26,7 +24,7 @@ through out the year by finding relationships between number of shares and weath
 The outcomes of the project are expected to be the following:
 
 1. Understanding the siginficance of weather on bike sharing systems
-2. Estimating the impact of predictors on the target variable
+2. Ability to estimate bike count required at each hour
 3. Building statistical models exploiting this dataset
 
 \
@@ -135,7 +133,7 @@ by using the treshold method.
 ```{r}
 library(igraph, warn.conflicts = FALSE); library(gRbase, warn.conflicts = FALSE);
 
-threshold <- 1/;
+threshold <- 1/5;
 variance.matrix <- var( seoul.bike.data[2:11], use="pairwise.complete.obs" );
 covariance.matrix <- -cov2cor( solve(variance.matrix) );
 independence.matrix <- abs( covariance.matrix ) > threshold;
