@@ -1,0 +1,293 @@
+---
+title: "Introduction to Markdown and knitr"
+author: "Alberto Roverato"
+font: 12pt
+output:
+  html_document:
+    toc: true
+    # number_sections: true
+  pdf_document:
+    toc: true
+    # number_sections: true
+  word_document:
+    toc: true
+    # number_sections: true
+---
+
+\
+
+## What is Markdown?
+
+-   Markdown is a (simple) markup language for creating formatted text using a plain-text editor.
+
+-   R Markdown is a free, open source tool that is installed like any other R package.
+
+-   In fact, you need the *rmarkdown* package, but you don't need to explicitly install it or load it, as RStudio automatically does both when needed.
+
+-   It enables you to keep all of your code, results, plots, and writing in one place.
+
+-   It allows you to export your work to numerous formats including PDF, Microsoft Word, a slideshow, or an HTML document for use in a website.
+
+-   Some examples are given below, but see also the *Markdown Quick Reference* in the *Help*
+
+\
+
+## 1. YAML header
+
+YAML header is a short blob of text, specially formatted with `key: value` pairs tags, that seats at the top of an Rmarkdown document. It is demarcated by three dashes `---` on either end. Instances of YAML arguments are "title", "author", and "output".
+
+\
+
+## 2. Markdown syntax
+
+### 2.1 Headers
+
+This is how to obtain *headers* of different size
+
+# Header level 1
+
+## Header level 2
+
+### Header level 3
+
+#### Header level 4
+
+##### Header level 5
+
+###### Header level 6
+
+\
+
+### 2.2 Italic and Bold
+
+This is *italic text*
+
+This is also _italic text_
+
+This is **bold text**
+
+This is also __bold text__
+
+And this is ***both bold and italic text***
+
+And this is also ___both bold and italic text___
+
+Markdown applications don't agree on how to handle underscores in the middle of a word. For compatibility, use asterisks to bold and italicize the middle of a word for emphasis.
+
+Note that, as explained below, if you use the `RStudio’s visual markdown editor`, then underscores (\_) will be converted into asterisks (\*).
+
+\
+
+### 2.3 Highlighted text and rules
+
+You can also highlight a text using a pair of backticks 
+so that \`like this\` will be printed as `like this`
+
+An horizontal rule can be obtained with `***`
+
+***
+
+but also with `---`
+
+---
+
+or with `___`
+
+___
+
+\
+
+### 2.4 Ordered lists
+
+These is how to do an ordered list:
+
+1.  the first item
+
+2.  the second item
+
+3.  the third item
+
+    -   one unordeded sub-item
+    -   one unordered sub-item
+
+\
+
+This is an unordered list:
+
+-   the first unordered item
+
+-   the second unordered item
+
+-   the third unordered item
+
+    -   the first unordered sub-item
+    -   the second unordered sub-item
+
+\
+
+### 2.5 Backslash
+
+There are multiple ways to add a blank line in markdown. One way is to use the backslash (`\`) symbol. For example you can add two blank lines...
+
+\
+\
+
+...like this.
+
+Another use of backslash escapes is to generate literal characters which would otherwise have special meaning in Markdown’s formatting syntax. For example, if you wanted to surround a word with literal asterisks you can use backslashes before the asterisks, like this,
+
+\*literal asterisks\*
+
+because otherwise asterisks are use for italic fonts, like this: *literal asterisks*. 
+
+\
+
+### 2.6 Links
+
+To turn a URL or an email address into a link, enclose it in angle brackets, 
+
+<https://www.google.it/>
+
+or you can enclose the link text in brackets and then follow it immediately with the URL in parentheses, like this:
+
+My favorite search engine is [GOOGLE](https://www.google.it/)
+
+\
+
+### 2.7 Writing math
+
+LaTex equations, inline, like this $\sqrt{\frac{1}{\pi}}$ or displayed like this $$f(x)=\lambda e^{-\lambda x}$$
+
+A pair of tildes (\~) turn text to a subscript, e.g., H~3~PO~4~. A pair of carets (\^) produce a superscript, e.g., Cu^2+^.
+
+\
+
+### 2.8 Tables
+
+To add a table, use three or more hyphens (---) to create each column’s header, and use pipes (\|) to separate each column. For compatibility, you should also add a pipe on either end of the row.
+
+You can align text in the columns to the left, right, or center by adding a colon (:) to the left, right, or on both side of the hyphens within the header row.
+
+| Example  |      Of       |  Table |
+|:---------|:-------------:|-------:|
+| col 1 is | left-aligned  | \$1600 |
+| col 2 is |   centered    |   \$12 |
+| col 3 is | right-aligned |    \$1 |
+
+\
+
+## 3. knitr
+
+-   Is an engine for dynamic report generation with R. It is a package in the programming language R that enables integration of R code into `LaTeX`, LyX, HTML, `Markdown`, AsciiDoc, and reStructuredText documents.
+
+-   The basic idea in knitr is that your regular text document will be interrupted by `chunks` of code delimited in a special way.
+
+\
+
+```{r}
+paste("Hello", "World")
+rnorm(1:5)
+```
+
+\
+
+It is possible to add a chunk name inside braces after the `r`.
+
+\
+
+```{r my-first-chunk}
+paste("Hello", "World")
+rnorm(1:5)
+```
+
+\
+
+The chunk name is not necessarily required however, it is good practice to give each chunk a unique name to support more advanced knitting approaches. Furthermore, in the RStudio IDE, you can navigate to specific chunks. Open the code chunk navigation window, located in the bottom left-hand side of the Source pane.
+
+\
+
+### 3.1 Some chunk options
+
+If `echo=FALSE` knitr will not display the code in the final document, but the results will appear in the final document. This is a useful way to embed figures.
+
+```{r try-echo-false, echo=FALSE}
+paste("Hello", "World")
+rnorm(1:5)
+```
+
+\
+
+If `eval=FALSE` then knitr will not run the code chunk
+
+```{r try-eval-false, eval=FALSE}
+paste("Hello", "World")
+rnorm(1:5)
+```
+
+\
+
+If `include=FALSE` knitr will run the chunk code but not include the chunk in the final document. However, the results can be used by other chunks.
+
+```{r try-include-false, include=FALSE}
+paste("Hello", "World")
+rnorm(1:5)
+```
+
+\
+
+### 3.2 Inline R code 
+
+Inline R code is embedded in the narratives of the document using the syntax  \` r \`, for example \` r sqrt(9)\*3\`  will result in the output `r sqrt(9)*3`. 
+
+\
+
+### 3.3 Figures
+
+```{r include-figure}
+hist(rnorm(1000), freq= FALSE, col="blue")
+```
+
+some options for plots
+
+```{r figure-with-options, fig.height=3, fig.width=3, fig.align="right"}
+hist(rnorm(1000), freq= FALSE, col="blue")
+```
+
+\
+
+### 3.4 Tables
+
+By default, R Markdown displays data frames and matrices as they would be in the R terminal.
+
+```{r example-of-table}
+library(ISLR2)
+data(Auto)
+Auto[1:5,]
+```
+
+\
+
+If you prefer that data be displayed with additional formatting you can use the function `kable()` in the package `knitr`
+
+```{r function-kable-for-talbles}
+library(knitr)
+kable(Auto[1:5,], format = "simple")
+#
+# "c"enter, "l"eft and "r"ight alignment of columns
+#
+kable(Auto[1:5,], format = "simple", align = "clrclrccl")
+#
+# change column names
+#
+kable(Auto[1:5,], format = "simple", align = "clrclrccl", col.names = LETTERS[1:9])
+```
+
+\
+
+## 4 RStudio’s visual markdown editor
+
+The RStudio IDE includes a visual markdown editor that displays changes in real-time and provides support for technical writing. 
+
+To switch into the visual mode for a markdown document click the “Visual” button located on the left side of the editor toolbar.
+
+Visual editing mode generates markdown using Pandoc, that is an open-source document converter. This means that in some cases your markdown will be rewritten to conform to standard Pandoc idioms. That is, **the Pandoc generated markdown that might differ from your own markdown writing style**.
