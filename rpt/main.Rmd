@@ -75,7 +75,12 @@ A key part of data preprocessing is dealing with missing values. These gaps can 
 If not handled properly, they can result in incorrect predictions. It's important to find and fix any missing values but
 in our case this dataset doesn't present this problem.
 
-TODO: check whether count is 0 on non functioning hours
+Here we also want to make sure that the dataset is coherent with itself. Specifically, we want to make sure that 
+when the system is not operative there are no erroneous shares.
+```{r}
+sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "No"]);
+sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "Yes"]);
+```
 
 ## Data preprocessing
 
