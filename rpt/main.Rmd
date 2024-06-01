@@ -96,7 +96,7 @@ seoul.bike.data$tmstmp <- strptime(
 	,format="%d/%m/%Y %H"
 );
 seoul.bike.data$Date <- as.Date( seoul.bike.data$Date, format="%d/%m/%Y" );
-seoul.bike.data$tmstmp <- as.Date( seoul.bike.data$tmstmp ) 
+seoul.bike.data$tmstmp <- as.Date( seoul.bike.data$tmstmp );
 ```
 
 Finally, we add the intercept to our data and transform the dataset into a matrix format.
@@ -134,6 +134,11 @@ library(corrplot, warn.conflicts = FALSE); corrplot(
 	);
 ```
 
+The most important predictors, in linear terms, for our target seem to be Temperature, Hour and Dew point temperature. We can also
+notice how Temperature and Dew point temperature are highly correlated which signifies that there might be
+a confounding effect taking place.
+In the next paragraph, our objective is to investigate the most siginficant correlations with our target.
+
 ## Partial correlation graph
 
 Partial correlation allows us to investigate the presence of linear relationships between variables with the effect of a set of controlling random
@@ -158,6 +163,9 @@ these variables from our analysis.
 
 ## Scatter plots
 
+We now try plotting our target, in our case Rented Bike count, against the new timestamp variable we created
+to see if we can notice any trends.
+
 ```{r}
 seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(3, 4, 5)] <- "Spring";
 seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(6, 7, 8)] <- "Summer";
@@ -172,7 +180,8 @@ legend("topleft", legend = names(ssn.clr), col = ssn.clr
   ,pch = 16, title = "Season", cex = 0.7);
 ```
 
-Here we notice how bike share demand peaks in summer 
+Here we notice how bike share demand peaks in summer and it declines in winter implying that the bike 
+shares are high when the weather is warm.
 
 ```{r}
 hr.clr <- colorRampPalette( c("#D0E1F9", "#4B8BBE", "#1D4E89") )(24)
@@ -181,8 +190,13 @@ plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
 	,cex = 0.5, main = "Rented Bike count vs. Timestamp"
 	,xlab = "Timestamp", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
-  ,pch = 16, title = "Season", cex = 0.7);
+  ,pch = 16, title = "Hour", cex = 0.7);
 ```
+
+This plot allows us to notice that although the target is indeed influenced by Hour, the influence is not as
+strong as for Temperature conforming with the result obtained in the correlation matrix.
+
+We now proceed to plot our target against Temperature to see if our assumptions have any foundation.
 
 ```{r}
 hr.clr <- colorRampPalette(c("#FF7F00", "#D95F0E", "#7570B3", "#984EA3", "#6A3D9A"))(24)
@@ -191,21 +205,12 @@ plot(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count
 	,cex = 0.5, main = "Rented Bike count vs. Temperature"
 	,xlab = "Temperature", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
-  ,pch = 16, title = "Season", cex = 0.7);
+  ,pch = 16, title = "Hour", cex = 0.7);
 ```
 
-## Distribution
-
-We proceed with the representation of scatter plots to visually identifiyif we can see
-evident relationships between our predictors and our target, in our case the target is Rented Bike count.
-
-```{r}
-plot(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Temperature, pch = 20);
-plot(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Hour, pch = 20);
-```
+This plot shows us how bike shares are indeed influenced by temperature in a mostly linear manner.
 
 ## Distribution
-
 
 
 # Modelling
