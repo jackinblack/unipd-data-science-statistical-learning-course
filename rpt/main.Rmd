@@ -19,7 +19,7 @@ output:
 A regression problem involves predicting a continuous numeric outcome using one or more input features. Linear regressors are based on the assumption that
 there is a linear relationship between both the dependent variable and independent variables. This project focuses on the applications of linear regressors
 on the Seoul Bike Sharing Demand dataset which incorporates real world bike sharing count of the city of Seoul with weather context ([the dataset can be retreived here](https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand)).
-As major cities worldwide are moving towards smart mobility we hope to gain insight into how open-vehicle sharing systems could be optimized for efficiency 
+As major cities worldwide are moving towards smart mobility we hope to gain insight into how open-vehicle sharing systems could be optimized for efficiency
 through out the year by finding relationships between number of shares and weather.
 
 The outcomes of the project are expected to be the following:
@@ -32,7 +32,7 @@ The outcomes of the project are expected to be the following:
 
 # Dataset insight
 
-We proceed our in depth look at the dataset by importing and looking at the summary. The format of the dataset is csv, to read it 
+We proceed our in depth look at the dataset by importing and looking at the summary. The format of the dataset is csv, to read it
 we use the built-in function read.csv of R.
 
 ```{r}
@@ -75,6 +75,13 @@ A key part of data preprocessing is dealing with missing values. These gaps can 
 If not handled properly, they can result in incorrect predictions. It's important to find and fix any missing values but
 in our case this dataset doesn't present this problem.
 
+Here we also want to make sure that the dataset is coherent with itself. Specifically, we want to make sure that 
+when the system is not operative there are no erroneous shares.
+```{r}
+sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "No"]);
+sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "Yes"]);
+```
+
 ## Data preprocessing
 
 Our dataset contains the following categorical variables: Seasons, Holiday, Functional Day. As seen before R treats them
@@ -91,12 +98,12 @@ Transforming everything into factors servers the following purpose
 We also need to transform our predictors Date and Hour into a date format correctly interpretable by R.
 
 ```{r}
-seoul.bike.data$tmstmp <- strptime( 
+seoul.bike.data$tmstmp <- strptime(
 	paste( seoul.bike.data$Date, seoul.bike.data$Hour )
 	,format="%d/%m/%Y %H"
 );
 seoul.bike.data$Date <- as.Date( seoul.bike.data$Date, format="%d/%m/%Y" );
-seoul.bike.data$tmstmp <- as.Date( seoul.bike.data$tmstmp ) 
+seoul.bike.data$tmstmp <- as.Date( seoul.bike.data$tmstmp );
 ```
 
 Finally, we add the intercept to our data and transform the dataset into a matrix format.
@@ -123,16 +130,24 @@ We begin this section of EDA by taking a look at the correlation matrix for our 
 
 ## Correlation matrix
 
+In order to find linear relationships between our continuous predictors our first step is to build
+a correlation matrix.
+
 ```{r}
-library(corrplot, warn.conflicts = FALSE); corrplot( 
+library(corrplot, warn.conflicts = FALSE); corrplot(
 	cor(seoul.bike.data[2:11])
 	,method = "number"
 	,diag = FALSE
 	,tl.cex = 0.8
 	,number.cex = 0.6
-	,tl.col = "black" 
+	,tl.col = "black"
 	);
 ```
+
+The most important predictors, in linear terms, for our target seem to be Temperature, Hour and Dew point temperature. We can also
+notice how Temperature and Dew point temperature are highly correlated which signifies that there might be
+a confounding effect taking place.
+In the next paragraph, our objective is to investigate the most siginficant correlations with our target.
 
 ## Partial correlation graph
 
@@ -153,10 +168,13 @@ plot(independence.graph);
 ```
 
 We can notice how the graph clearly presents us with the fact that our target is correlated with a multitude of predictors in our dataset.
-On the contrary, Snowfall and Rainfall seem to not be linaerly correlated to the target but this fact alone does not mean we should remove 
+On the contrary, Snowfall and Rainfall seem to not be linaerly correlated to the target but this fact alone does not mean we should remove
 these variables from our analysis.
 
 ## Scatter plots
+
+We now try plotting our target, in our case Rented Bike count, against the new timestamp variable we created
+to see if we can notice any trends. With the help of a legend we split the dataset into all 4 seasons.
 
 ```{r}
 seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(3, 4, 5)] <- "Spring";
@@ -172,7 +190,8 @@ legend("topleft", legend = names(ssn.clr), col = ssn.clr
   ,pch = 16, title = "Season", cex = 0.7);
 ```
 
-Here we notice how bike share demand peaks in summer 
+Here we notice how bike share demand peaks in summer and declines in winter implying that the bike
+shares are high when the weather is warm.
 
 ```{r}
 hr.clr <- colorRampPalette( c("#D0E1F9", "#4B8BBE", "#1D4E89") )(24)
@@ -181,32 +200,38 @@ plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
 	,cex = 0.5, main = "Rented Bike count vs. Timestamp"
 	,xlab = "Timestamp", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
-  ,pch = 16, title = "Season", cex = 0.7);
+  ,pch = 16, title = "Hour", cex = 0.7);
 ```
 
+This plot allows us to notice that although the target is indeed influenced by Hour, the influence is not as
+strong as for Temperature conforming with the result obtained in the correlation matrix.
+
+We now proceed to plot our target against Temperature to see if our assumptions have any foundation.
+
 ```{r}
-hr.clr <- colorRampPalette(c("#FF7F00", "#D95F0E", "#7570B3", "#984EA3", "#6A3D9A"))(24)
+hr.clr <- colorRampPalette(c("#6A3D9A", "#984EA3", "#7570B3", "#D95F0E", "#FF7F00"))(24)
 plot(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count
 	,col = hr.clr[seoul.bike.data$Hour], pch = 16
 	,cex = 0.5, main = "Rented Bike count vs. Temperature"
 	,xlab = "Temperature", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
-  ,pch = 16, title = "Season", cex = 0.7);
+  ,pch = 16, title = "Hour", cex = 0.7);
 ```
 
-## Distribution
+This plot shows us how bike shares are indeed influenced by temperature in a mostly linear manner.
+Although the correlation between target and Hour is relatively significant, by inspecting this scatter plot
+we cannot conclude that it is true.
 
-We proceed with the representation of scatter plots to visually identifiyif we can see
-evident relationships between our predictors and our target, in our case the target is Rented Bike count.
+## Distribution
 
 ```{r}
-plot(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Temperature, pch = 20);
-plot(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Hour, pch = 20);
+par(mfrow = c(3, 4));
+for (i in 2:11) {
+  hist(seoul.bike.data[[i]], main = paste("Histogram of", names(seoul.bike.data)[i])
+  	,xlab = names(seoul.bike.data)[i], col = "skyblue", border = "white", cex.main = 0.8);
+}
+# par(mfrow = c(1, 1));
 ```
-
-## Distribution
-
-
 
 # Modelling
 In this step you may, for example, use regression and predictions for forecasting future
