@@ -75,6 +75,8 @@ A key part of data preprocessing is dealing with missing values. These gaps can 
 If not handled properly, they can result in incorrect predictions. It's important to find and fix any missing values but
 in our case this dataset doesn't present this problem.
 
+TODO: check whether count is 0 on non functioning hours
+
 ## Data preprocessing
 
 Our dataset contains the following categorical variables: Seasons, Holiday, Functional Day. As seen before R treats them
