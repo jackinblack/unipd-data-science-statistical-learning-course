@@ -164,16 +164,10 @@ seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(6, 7, 8)] <
 seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(9, 10, 11)] <- "Autumn";
 seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(12, 1, 2)] <- "Winter";
 ssn.clr = c("Spring" = "#78C850", "Summer" = "#FFB14E", "Autumn" = "#DC143C", "Winter" = "#4B8BBE");
-plot(
-	seoul.bike.data$tmstmp
-	,seoul.bike.data$Rented.Bike.Count
-	,col = ssn.clr[seoul.bike.data$Season]
-	,pch = 16
-	,cex = 0.5
-	,main = "Rented Bike count vs. Datetime"
-	,xlab = "Datetime"
-	,ylab = "Rented Bike count"
-);
+plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
+	,col = ssn.clr[seoul.bike.data$Season], pch = 16
+	,cex = 0.5, main = "Rented Bike count vs. Timestamp"
+	,xlab = "Timestamp",ylab = "Rented Bike count" );
 legend("topleft", legend = names(ssn.clr), col = ssn.clr
   ,pch = 16, title = "Season", cex = 0.7);
 ```
@@ -182,37 +176,21 @@ Here we notice how bike share demand peaks in summer
 
 ```{r}
 hr.clr <- colorRampPalette( c("#D0E1F9", "#4B8BBE", "#1D4E89") )(24)
-plot(
-	seoul.bike.data$tmstmp
-	,seoul.bike.data$Rented.Bike.Count
-	,col = hr.clr[seoul.bike.data$Hour]
-	,pch = 16
-	,cex = 0.5
-	,main = "Rented Bike count vs. Datetime"
-	,xlab = "Datetime"
-	,ylab = "Rented Bike count"
-);
+plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
+	,col = hr.clr[seoul.bike.data$Hour], pch = 16
+	,cex = 0.5, main = "Rented Bike count vs. Timestamp"
+	,xlab = "Timestamp", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
   ,pch = 16, title = "Season", cex = 0.7);
 ```
 
 ```{r}
-seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(3, 4, 5)] <- "Spring";
-seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(6, 7, 8)] <- "Summer";
-seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(9, 10, 11)] <- "Autumn";
-seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(12, 1, 2)] <- "Winter";
-ssn.clr = c("Spring" = "#78C850", "Summer" = "#FFB14E", "Autumn" = "#DC143C", "Winter" = "#4B8BBE")
-plot(
-	seoul.bike.data$tmstmp
-	,seoul.bike.data$Rented.Bike.Count
-	,col = ssn.clr[seoul.bike.data$Season]
-	,pch = 16
-	,cex = 0.5
-	,main = "Rented Bike count vs. Datetime"
-	,xlab = "Datetime"
-	,ylab = "Rented Bike count"
-);
-legend("topleft", legend = names(ssn.clr), col = ssn.clr
+hr.clr <- colorRampPalette(c("#FF7F00", "#D95F0E", "#7570B3", "#984EA3", "#6A3D9A"))(24)
+plot(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count
+	,col = hr.clr[seoul.bike.data$Hour], pch = 16
+	,cex = 0.5, main = "Rented Bike count vs. Temperature"
+	,xlab = "Temperature", ylab = "Rented Bike count");
+legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
   ,pch = 16, title = "Season", cex = 0.7);
 ```
 
