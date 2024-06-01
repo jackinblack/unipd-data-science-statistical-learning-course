@@ -100,6 +100,10 @@ seoul.bike.datam <- cbind(1, seoul.bike.data);
 seoul.bike.datam <- as.matrix( seoul.bike.data );
 ```
 
+## Outliers and high-leverage points
+
+
+
 \
 
 # Exploratory Data analysis
@@ -163,6 +167,20 @@ plot(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Hour, pch = 20);
 
 
 # Modelling
+In this step you may, for example, use regression and predictions for forecasting future
+values, and classification to identify groups.
+One of the first things you need to do in modelling data is to reduce the dimensionality
+of your data set. Not all your features or values are essential to predicting your model.
+What you need to do is to select the relevant ones that contribute to the prediction
+of results or apply shrinkage regressions.
+
+
+We proceed with modelling several predictive models covered during the course:
+
+1. Multiple Linear Regressor
+2. Poisson Regressor
+3. Ridge Regression
+4. Lasso Regression
 
 ## Diagnostics
 
@@ -178,4 +196,10 @@ plot(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Hour, pch = 20);
 
 # Conclusions
 
-
+Interpreting data refers to the presentation of your analysis. Technical details are nec-
+essary but make an effort to make you presentation accessible also to a non-technical
+audience. You should deliver the results to answer the questions you asked when we
+first started the project, together with the actionable insights that you found through
+the process.
+In this process, technical skills only are not sufficient. One essential skill you need is
+to be able to tell a clear and actionable story.
