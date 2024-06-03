@@ -217,7 +217,23 @@ legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
 
 This plot shows us how bike shares are indeed influenced by temperature in a mostly linear manner.
 Although the correlation between target and Hour is relatively significant, by inspecting this scatter plot
-we cannot conclude that it is true.
+we cannot conclude that this is true.
+
+```{r}
+par(mfrow = c(2, 2));
+boxplot(Rented.Bike.Count ~ weekdays(seoul.bike.data$tmstmp), data = seoul.bike.data, 
+        xlab = "Day of the Week", ylab = "Rented Bike count"
+		,main = "Rented Bike cnt vs. Day of the Week"
+		,col = c("lightpink", "lightblue", "lightgreen", "lightcoral", "lightgoldenrod", "lightcyan", "lavender"));
+plot(seoul.bike.data$Humidity, seoul.bike.data$Rented.Bike.Count, 
+     xlab = "Humidity (%)", ylab = "Rented Bike count", 
+     main = "Rented Bike cnt vs. Humidity", 
+     col =  c("lightgreen", "mediumseagreen", "darkseagreen", "palegreen"), pch = 16, cex = 0.7);
+plot(seoul.bike.data$Wind.speed, seoul.bike.data$Rented.Bike.Count, 
+     xlab = "Wind Speed (m/s)", ylab = "Rented Bike count", 
+     main = "Rented Bike cnt vs. Wind Speed", 
+     col = "#7469B6", pch = 16, cex = 0.7);
+```
 
 ## Distribution
 
