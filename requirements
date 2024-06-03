@@ -1,0 +1,16 @@
+linux:
+ pandoc
+ texlive-latex-base
+ texlive-latex-recommended
+ texlive-fonts-recommended
+ texlive-latex-extra
+r: 
+ knitr
+ rmarkdown
+ tinytex
+ igprah
+ gRbase
+ corrplot
+ ISLR2
+ glmnet
+
