@@ -234,6 +234,88 @@ plot(seoul.bike.data$Wind.speed, seoul.bike.data$Rented.Bike.Count,
      main = "Rented Bike cnt vs. Wind Speed", 
      col = "#7469B6", pch = 16, cex = 0.7);
 ```
+```{r}
+classify_weather <- function(wind_speed, humidity, temperature, visibility, solar_radiation, rainfall, snowfall) {
+  if (rainfall > 0 | snowfall > 0) {
+    return("Wet")
+  } else if (solar_radiation > 0.5) {
+    return("Sunny")
+  } else if (temperature < 0) {
+    return("Cold")
+  } else if (temperature > 25) {
+    return("Hot")
+  } else if (humidity > 80) {
+    return("Humid")
+  } else if (wind_speed > 5) {
+    return("Windy")
+  } else {
+    return("Moderate")
+  }
+}
+
+# Apply the function to create a new weather variable
+seoul.bike.data$Weather <- mapply(classify_weather, 
+                                  seoul.bike.data$Wind.speed, 
+                                  seoul.bike.data$Humidity, 
+                                  seoul.bike.data$Temperature, 
+                                  seoul.bike.data$Visibility, 
+                                  seoul.bike.data$Solar.Radiation, 
+                                  seoul.bike.data$Rainfall, 
+                                  seoul.bike.data$Snowfall)
+
+boxplot(Rented.Bike.Count ~ Weather, data = seoul.bike.data, 
+        xlab = "Weather Condition", ylab = "Bike Count", 
+        main = "Bike Count vs. Weather Condition", 
+        col = c("skyblue", "lightgreen", "orange", "lightcoral", "lightgoldenrod", "lightcyan", "lavender"),
+        border = "black", las = 1, cex.axis = 0.8)
+
+# Optional: Add mean points
+means <- tapply(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Weather, mean)
+points(1:length(means), means, col = "red", pch = 18)
+count_outliers <- function(x) {
+  Q1 <- quantile(x, 0.25, na.rm = TRUE)
+  Q3 <- quantile(x, 0.75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  lower_bound <- Q1 - 1.5 * IQR
+  upper_bound <- Q3 + 1.5 * IQR
+  outliers <- x[x < lower_bound | x > upper_bound]
+  return(length(outliers))
+}
+
+# Apply the function to each category in the dataset
+outlier_counts <- tapply(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Weather, count_outliers)
+
+# Print the number of outliers for each category
+print(outlier_counts)
+```
+
+
+```{r}
+
+
+# Assign weights to each variable based on assumed or known importance
+# Adjust weights to ensure the sum results in a non-negative score
+# These weights can be adjusted based on domain knowledge or data analysis
+weights <- c(Temperature = 0.25, Humidity = 0.15, WindSpeed = 0.10, 
+             Visibility = 0.20, SolarRadiation = 0.15, Rainfall = 0.05, Snowfall = 0.10)
+
+# Calculate the weather score as a weighted sum of the standardized variables
+seoul.bike.data$WeatherScore <- (weights["Temperature"] * seoul.bike.data$Temperature +
+                                 weights["Humidity"] * seoul.bike.data$Humidity +
+                                 weights["WindSpeed"] * seoul.bike.data$Wind.speed +
+                                 weights["Visibility"] * seoul.bike.data$Visibility +
+                                 weights["SolarRadiation"] * seoul.bike.data$Solar.Radiation +
+                                 weights["Rainfall"] * seoul.bike.data$Rainfall +
+                                 weights["Snowfall"] * seoul.bike.data$Snowfall)
+hr.clr <- colorRampPalette(c("red", "yellow", "green"))(24)
+plot(log(seoul.bike.data$WeatherScore), seoul.bike.data$Rented.Bike.Count
+	,col = hr.clr[seoul.bike.data$Hour], pch = 16
+	,cex = 0.5, main = "Rented Bike count vs. WeatherScore"
+	,xlab = "WeatherScore", ylab = "Rented Bike count");
+legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
+  ,pch = 16, title = "Hour", cex = 0.7);
+```
+
 
 ## Distribution
 
