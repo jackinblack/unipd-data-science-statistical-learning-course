@@ -177,11 +177,8 @@ We now try plotting our target, in our case Rented Bike count, against the new t
 to see if we can notice any trends. With the help of a legend we split the dataset into all 4 seasons.
 
 ```{r}
-seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(3, 4, 5)] <- "Spring";
-seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(6, 7, 8)] <- "Summer";
-seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(9, 10, 11)] <- "Autumn";
-seoul.bike.data$Season[as.POSIXlt(seoul.bike.data$tmstmp)$mon %in% c(12, 1, 2)] <- "Winter";
-ssn.clr = c("Spring" = "#78C850", "Summer" = "#FFB14E", "Autumn" = "#DC143C", "Winter" = "#4B8BBE");
+ssn.clr = c("Spring" = "#78C850", "Summer" = "#FFB14E"
+	,"Autumn" = "#DC143C", "Winter" = "#4B8BBE");
 plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
 	,col = ssn.clr[seoul.bike.data$Season], pch = 16
 	,cex = 0.5, main = "Rented Bike count vs. Timestamp"
