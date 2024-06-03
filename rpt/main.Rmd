@@ -216,8 +216,8 @@ legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
 ```
 
 This plot shows us how bike shares are indeed influenced by temperature in a mostly linear manner.
-Although the correlation between target and Hour is relatively significant, by inspecting this scatter plot
-we cannot conclude that this is true.
+Although the correlation between target and Hour is relatively significant, by inspecting the last two scatter plots
+we cannot conclude that this is true as we can clearly see that we have peaks even at late hours.
 
 ```{r}
 par(mfrow = c(2, 2));
@@ -370,8 +370,10 @@ cor(seoul.bike.data$Rented.Bike.Count, (seoul.bike.data$WeatherScore)^1/3)
 ```{r}
 par(mfrow = c(3, 4));
 for (i in 2:11) {
-  hist(seoul.bike.data[[i]], main = paste("Histogram of", names(seoul.bike.data)[i])
-  	,xlab = names(seoul.bike.data)[i], col = "skyblue", border = "white", cex.main = 0.8);
+	hist(seoul.bike.data[[i]], breaks = 30, probability = TRUE
+		,main = paste("Histogram of", names(seoul.bike.data)[i])
+  		,xlab = names(seoul.bike.data)[i], col = "skyblue", border = "white", cex.main = 0.8);
+	lines(density(seoul.bike.data[[i]]), col = "darkblue", lwd = 2);
 }
 # par(mfrow = c(1, 1));
 ```
