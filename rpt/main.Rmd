@@ -75,7 +75,7 @@ A key part of data preprocessing is dealing with missing values. These gaps can 
 If not handled properly, they can result in incorrect predictions. It's important to find and fix any missing values but
 in our case this dataset doesn't present this problem.
 
-Here we also want to make sure that the dataset is coherent with itself. Specifically, we want to make sure that 
+Here we also want to make sure that the dataset is coherent with itself. Specifically, we want to make sure that
 when the system is not operative there are no erroneous shares.
 ```{r}
 sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "No"]);
@@ -221,18 +221,18 @@ we cannot conclude that this is true.
 
 ```{r}
 par(mfrow = c(2, 2));
-boxplot(Rented.Bike.Count ~ weekdays(seoul.bike.data$tmstmp), data = seoul.bike.data, 
-        xlab = "Day of the Week", ylab = "Rented Bike count"
-		,main = "Rented Bike cnt vs. Day of the Week"
-		,col = c("lightpink", "lightblue", "lightgreen", "lightcoral", "lightgoldenrod", "lightcyan", "lavender"));
-plot(seoul.bike.data$Humidity, seoul.bike.data$Rented.Bike.Count, 
-     xlab = "Humidity (%)", ylab = "Rented Bike count", 
-     main = "Rented Bike cnt vs. Humidity", 
-     col =  c("lightgreen", "mediumseagreen", "darkseagreen", "palegreen"), pch = 16, cex = 0.7);
-plot(seoul.bike.data$Wind.speed, seoul.bike.data$Rented.Bike.Count, 
-     xlab = "Wind Speed (m/s)", ylab = "Rented Bike count", 
-     main = "Rented Bike cnt vs. Wind Speed", 
-     col = "#7469B6", pch = 16, cex = 0.7);
+boxplot(Rented.Bike.Count ~ weekdays(seoul.bike.data$tmstmp), data = seoul.bike.data
+	,xlab = "Day of the Week", ylab = "Rented Bike count"
+	,main = "Rented Bike cnt vs. Day of the Week"
+	,col = c("lightpink", "lightblue", "lightgreen", "lightcoral", "lightgoldenrod", "lightcyan", "lavender"));
+plot(seoul.bike.data$Humidity, seoul.bike.data$Rented.Bike.Count
+	,xlab = "Humidity (%)", ylab = "Rented Bike count"
+	,main = "Rented Bike cnt vs. Humidity"
+	,col =  c("lightgreen", "mediumseagreen", "darkseagreen", "palegreen"), pch = 16, cex = 0.7);
+plot(seoul.bike.data$Wind.speed, seoul.bike.data$Rented.Bike.Count
+	,xlab = "Wind Speed (m/s)", ylab = "Rented Bike count"
+	,main = "Rented Bike cnt vs. Wind Speed"
+	,col = "#7469B6", pch = 16, cex = 0.7);
 ```
 ```{r}
 classify_weather <- function(wind_speed, humidity, temperature, visibility, solar_radiation, rainfall, snowfall) {
@@ -254,18 +254,18 @@ classify_weather <- function(wind_speed, humidity, temperature, visibility, sola
 }
 
 # Apply the function to create a new weather variable
-seoul.bike.data$Weather <- mapply(classify_weather, 
-                                  seoul.bike.data$Wind.speed, 
-                                  seoul.bike.data$Humidity, 
-                                  seoul.bike.data$Temperature, 
-                                  seoul.bike.data$Visibility, 
-                                  seoul.bike.data$Solar.Radiation, 
-                                  seoul.bike.data$Rainfall, 
+seoul.bike.data$Weather <- mapply(classify_weather,
+                                  seoul.bike.data$Wind.speed,
+                                  seoul.bike.data$Humidity,
+                                  seoul.bike.data$Temperature,
+                                  seoul.bike.data$Visibility,
+                                  seoul.bike.data$Solar.Radiation,
+                                  seoul.bike.data$Rainfall,
                                   seoul.bike.data$Snowfall)
 
-boxplot(Rented.Bike.Count ~ Weather, data = seoul.bike.data, 
-        xlab = "Weather Condition", ylab = "Bike Count", 
-        main = "Bike Count vs. Weather Condition", 
+boxplot(Rented.Bike.Count ~ Weather, data = seoul.bike.data,
+        xlab = "Weather Condition", ylab = "Bike Count",
+        main = "Bike Count vs. Weather Condition",
         col = c("skyblue", "lightgreen", "orange", "lightcoral", "lightgoldenrod", "lightcyan", "lavender"),
         border = "black", las = 1, cex.axis = 0.8)
 
@@ -296,7 +296,7 @@ print(outlier_counts)
 # Assign weights to each variable based on assumed or known importance
 # Adjust weights to ensure the sum results in a non-negative score
 # These weights can be adjusted based on domain knowledge or data analysis
-weights <- c(Temperature = 0.25, Humidity = 0.15, WindSpeed = 0.10, 
+weights <- c(Temperature = 0.25, Humidity = 0.15, WindSpeed = 0.10,
              Visibility = 0.20, SolarRadiation = 0.15, Rainfall = 0.05, Snowfall = 0.10)
 
 # Calculate the weather score as a weighted sum of the standardized variables
@@ -316,6 +316,54 @@ legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
   ,pch = 16, title = "Hour", cex = 0.7);
 ```
 
+```{r}
+inv.logit <- function(x) {
+  return(x/(1+x))
+}
+library(glmnet)
+grid <- 10^seq(3, -2, length=100)
+predictors <- c("Temperature", "Humidity", "Wind.speed", "Visibility", "Solar.Radiation", "Rainfall", "Snowfall")
+response <- "Rented.Bike.Count"
+
+# Create a matrix of predictors
+X <- as.matrix(seoul.bike.data[, predictors])
+
+# Create a vector of the response variable
+y <- seoul.bike.data[, response]
+X <- scale(X)
+
+# Split the data into training and testing sets
+set.seed(123) # for reproducibility
+train_index <- sample(1:nrow(seoul.bike.data), 0.7 * nrow(seoul.bike.data)) # 70% for training
+train_data <- seoul.bike.data[train_index, ]
+test_data <- seoul.bike.data[-train_index, ]
+
+# Train the Lasso model
+lasso_model <- glmnet(x = X[train_index, ], y = y[train_index], alpha = 1)
+
+# Tune the Lasso model using cross-validation
+cv_lasso <- cv.glmnet(x = X[train_index, ], y = y[train_index], alpha = 1)
+#lasso_pred <- predict(lasso_model, newx = X[-train_index, ], s = "lambda.min")
+optimal_lambda <- cv_lasso$lambda.min
+lasso_pred <- predict(lasso_model, newx = X[-train_index, ], s = optimal_lambda)
+
+# Calculate the mean squared error
+mse <- mean((lasso_pred - y[-train_index])^2)
+
+# Calculate the total sum of squares (TSS)
+tss <- sum((y[-train_index] - mean(y[-train_index]))^2)
+
+# Calculate R-squared
+r_squared <- 1 - mse / tss
+
+# Print the R-squared value
+print(r_squared)
+# Get the optimal value of lambda
+
+
+# Evaluate the model performance on the testing data
+cor(seoul.bike.data$Rented.Bike.Count, (seoul.bike.data$WeatherScore)^1/3)
+```
 
 ## Distribution
 
