@@ -75,6 +75,15 @@ A key part of data preprocessing is dealing with missing values. These gaps can 
 If not handled properly, they can result in incorrect predictions. It's important to find and fix any missing values but
 in our case this dataset doesn't present this problem.
 
+Notice how our Humidity predictor sometimes is reported as 0%, since this scenario is highly unlikely we assume that these values 
+are attributed to a malfunctioning of the devices responsible for this predictor. We proceed by replacing these values with the median
+of the remaining values.
+
+```{r}
+median_humidity <- median(seoul.bike.data$Humidity[seoul.bike.data$Humidity != 0], na.rm = TRUE)
+seoul.bike.data$Humidity[seoul.bike.data$Humidity == 0] <- median_humidity
+```
+
 Here we also want to make sure that the dataset is coherent with itself. Specifically, we want to make sure that
 when the system is not operative there are no erroneous shares.
 ```{r}
@@ -233,6 +242,10 @@ plot(seoul.bike.data$Wind.speed, seoul.bike.data$Rented.Bike.Count
 	,xlab = "Wind Speed (m/s)", ylab = "Rented Bike count"
 	,main = "Rented Bike cnt vs. Wind Speed"
 	,col = "#7469B6", pch = 16, cex = 0.7);
+plot(seoul.bike.data$Hour, seoul.bike.data$Rented.Bike.Count
+	,xlab = "Hour", ylab = "Rented Bike count"
+	,main = "Rented Bike cnt vs. Hour"
+	,col = "skyblue", pch = 16, cex = 0.7);
 ```
 ```{r}
 classify_weather <- function(wind_speed, humidity, temperature, visibility, solar_radiation, rainfall, snowfall) {
