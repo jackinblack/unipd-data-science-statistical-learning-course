@@ -193,7 +193,8 @@ plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
 	,cex = 0.5, main = "Rented Bike count vs. Timestamp"
 	,xlab = "Timestamp",ylab = "Rented Bike count" );
 legend("topleft", legend = names(ssn.clr), col = ssn.clr
-  ,pch = 16, title = "Season", cex = 0.7);
+,pch = 16, title = "Season", cex = 0.7);
+lines(loess.smooth(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 1);
 ```
 
 Here we notice how bike share demand peaks in summer and declines in winter implying that the bike
@@ -206,7 +207,8 @@ plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
 	,cex = 0.5, main = "Rented Bike count vs. Timestamp"
 	,xlab = "Timestamp", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
-  ,pch = 16, title = "Hour", cex = 0.7);
+,pch = 16, title = "Hour", cex = 0.7);
+lines(loess.smooth(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 1);
 ```
 
 This plot allows us to notice that although the target is indeed influenced by Hour, the influence is not as
@@ -221,7 +223,8 @@ plot(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count
 	,cex = 0.5, main = "Rented Bike count vs. Temperature"
 	,xlab = "Temperature", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
-  ,pch = 16, title = "Hour", cex = 0.7);
+,pch = 16, title = "Hour", cex = 0.7);
+lines(loess.smooth(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 3);
 ```
 
 This plot shows us how bike shares are indeed influenced by temperature in a mostly linear manner.
@@ -238,10 +241,12 @@ plot(seoul.bike.data$Humidity, seoul.bike.data$Rented.Bike.Count
 	,xlab = "Humidity (%)", ylab = "Rented Bike count"
 	,main = "Rented Bike cnt vs. Humidity"
 	,col =  c("lightgreen", "mediumseagreen", "darkseagreen", "palegreen"), pch = 16, cex = 0.7);
+lines(loess.smooth(seoul.bike.data$Humidity, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 1);
 plot(seoul.bike.data$Wind.speed, seoul.bike.data$Rented.Bike.Count
 	,xlab = "Wind Speed (m/s)", ylab = "Rented Bike count"
 	,main = "Rented Bike cnt vs. Wind Speed"
 	,col = "#7469B6", pch = 16, cex = 0.7);
+lines(loess.smooth(seoul.bike.data$Wind.speed, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 1);
 plot(seoul.bike.data$Hour, seoul.bike.data$Rented.Bike.Count
 	,xlab = "Hour", ylab = "Rented Bike count"
 	,main = "Rented Bike cnt vs. Hour"
@@ -249,50 +254,50 @@ plot(seoul.bike.data$Hour, seoul.bike.data$Rented.Bike.Count
 ```
 ```{r}
 classify_weather <- function(wind_speed, humidity, temperature, visibility, solar_radiation, rainfall, snowfall) {
-  if (rainfall > 0 | snowfall > 0) {
-    return("Wet")
-  } else if (solar_radiation > 0.5) {
-    return("Sunny")
-  } else if (temperature < 0) {
-    return("Cold")
-  } else if (temperature > 25) {
-    return("Hot")
-  } else if (humidity > 80) {
-    return("Humid")
-  } else if (wind_speed > 5) {
-    return("Windy")
-  } else {
-    return("Moderate")
-  }
+if (rainfall > 0 | snowfall > 0) {
+	return("Wet")
+} else if (solar_radiation > 0.5) {
+	return("Sunny")
+} else if (temperature < 0) {
+	return("Cold")
+} else if (temperature > 25) {
+	return("Hot")
+} else if (humidity > 80) {
+	return("Humid")
+} else if (wind_speed > 5) {
+	return("Windy")
+} else {
+	return("Moderate")
+}
 }
 
 # Apply the function to create a new weather variable
 seoul.bike.data$Weather <- mapply(classify_weather,
-                                  seoul.bike.data$Wind.speed,
-                                  seoul.bike.data$Humidity,
-                                  seoul.bike.data$Temperature,
-                                  seoul.bike.data$Visibility,
-                                  seoul.bike.data$Solar.Radiation,
-                                  seoul.bike.data$Rainfall,
-                                  seoul.bike.data$Snowfall)
+								seoul.bike.data$Wind.speed,
+								seoul.bike.data$Humidity,
+								seoul.bike.data$Temperature,
+								seoul.bike.data$Visibility,
+								seoul.bike.data$Solar.Radiation,
+								seoul.bike.data$Rainfall,
+								seoul.bike.data$Snowfall)
 
 boxplot(Rented.Bike.Count ~ Weather, data = seoul.bike.data,
-        xlab = "Weather Condition", ylab = "Bike Count",
-        main = "Bike Count vs. Weather Condition",
-        col = c("skyblue", "lightgreen", "orange", "lightcoral", "lightgoldenrod", "lightcyan", "lavender"),
-        border = "black", las = 1, cex.axis = 0.8)
+		xlab = "Weather Condition", ylab = "Bike Count",
+		main = "Bike Count vs. Weather Condition",
+		col = c("skyblue", "lightgreen", "orange", "lightcoral", "lightgoldenrod", "lightcyan", "lavender"),
+		border = "black", las = 1, cex.axis = 0.8)
 
 # Optional: Add mean points
 means <- tapply(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Weather, mean)
 points(1:length(means), means, col = "red", pch = 18)
 count_outliers <- function(x) {
-  Q1 <- quantile(x, 0.25, na.rm = TRUE)
-  Q3 <- quantile(x, 0.75, na.rm = TRUE)
-  IQR <- Q3 - Q1
-  lower_bound <- Q1 - 1.5 * IQR
-  upper_bound <- Q3 + 1.5 * IQR
-  outliers <- x[x < lower_bound | x > upper_bound]
-  return(length(outliers))
+Q1 <- quantile(x, 0.25, na.rm = TRUE)
+Q3 <- quantile(x, 0.75, na.rm = TRUE)
+IQR <- Q3 - Q1
+lower_bound <- Q1 - 1.5 * IQR
+upper_bound <- Q3 + 1.5 * IQR
+outliers <- x[x < lower_bound | x > upper_bound]
+return(length(outliers))
 }
 
 # Apply the function to each category in the dataset
@@ -310,28 +315,28 @@ print(outlier_counts)
 # Adjust weights to ensure the sum results in a non-negative score
 # These weights can be adjusted based on domain knowledge or data analysis
 weights <- c(Temperature = 0.25, Humidity = 0.15, WindSpeed = 0.10,
-             Visibility = 0.20, SolarRadiation = 0.15, Rainfall = 0.05, Snowfall = 0.10)
+			Visibility = 0.20, SolarRadiation = 0.15, Rainfall = 0.05, Snowfall = 0.10)
 
 # Calculate the weather score as a weighted sum of the standardized variables
 seoul.bike.data$WeatherScore <- (weights["Temperature"] * seoul.bike.data$Temperature +
-                                 weights["Humidity"] * seoul.bike.data$Humidity +
-                                 weights["WindSpeed"] * seoul.bike.data$Wind.speed +
-                                 weights["Visibility"] * seoul.bike.data$Visibility +
-                                 weights["SolarRadiation"] * seoul.bike.data$Solar.Radiation +
-                                 weights["Rainfall"] * seoul.bike.data$Rainfall +
-                                 weights["Snowfall"] * seoul.bike.data$Snowfall)
+								weights["Humidity"] * seoul.bike.data$Humidity +
+								weights["WindSpeed"] * seoul.bike.data$Wind.speed +
+								weights["Visibility"] * seoul.bike.data$Visibility +
+								weights["SolarRadiation"] * seoul.bike.data$Solar.Radiation +
+								weights["Rainfall"] * seoul.bike.data$Rainfall +
+								weights["Snowfall"] * seoul.bike.data$Snowfall)
 hr.clr <- colorRampPalette(c("red", "yellow", "green"))(24)
 plot(log(seoul.bike.data$WeatherScore), seoul.bike.data$Rented.Bike.Count
 	,col = hr.clr[seoul.bike.data$Hour], pch = 16
 	,cex = 0.5, main = "Rented Bike count vs. WeatherScore"
 	,xlab = "WeatherScore", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
-  ,pch = 16, title = "Hour", cex = 0.7);
+,pch = 16, title = "Hour", cex = 0.7);
 ```
 
 ```{r}
 inv.logit <- function(x) {
-  return(x/(1+x))
+return(x/(1+x))
 }
 library(glmnet)
 grid <- 10^seq(3, -2, length=100)
@@ -385,8 +390,16 @@ par(mfrow = c(3, 4));
 for (i in 2:11) {
 	hist(seoul.bike.data[[i]], breaks = 30, probability = TRUE
 		,main = paste("Histogram of", names(seoul.bike.data)[i])
-  		,xlab = names(seoul.bike.data)[i], col = "skyblue", border = "white", cex.main = 0.8);
+		,xlab = names(seoul.bike.data)[i], col = "skyblue", border = "white", cex.main = 0.8);
 	lines(density(seoul.bike.data[[i]]), col = "darkblue", lwd = 2);
+	var.mean <- mean(seoul.bike.data[[i]], na.rm = TRUE);
+	var.median <- median(seoul.bike.data[[i]], na.rm = TRUE);
+	unique.res <- unique(seoul.bike.data[[i]])
+	var.mode <- unique.res[which.max(tabulate(match(seoul.bike.data[[i]], unique.res)))]
+	
+	abline(v = var.mean, col = "#FF6347", lty = 1); # red
+	abline(v = var.median, col = "#4682B4", lty = 1); # blue
+	abline(v = var.mode, col = "#3CB371", lty = 1); # green
 }
 # par(mfrow = c(1, 1));
 ```
