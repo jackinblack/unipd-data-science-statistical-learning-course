@@ -385,6 +385,14 @@ cor(seoul.bike.data$Rented.Bike.Count, (seoul.bike.data$WeatherScore)^1/3)
 
 ## Distribution
 
+The ﬁrst step in most data analysis applications is the exploration of the statistical properties of the variables. This is typically
+achieved by plotting the probability densities, which succinctly summarize each variable for visualization. One way to obtain an
+empirical non-parametric density estimate is by using histograms. Although histograms are considered crude for most advanced statistical
+applications, they have the great advantage of making no prior assumptions regarding the distribution of the examined variable
+and are very simple to compute. Often, this preliminary step can reveal whether the variable follows a Gaussian (normal) distribution,
+which is characterized by a unimodal peak in the middle of the variables possible range of values, is completely symmetric,
+and is particularly useful because a large number of mathematical functions are applicable.
+
 ```{r}
 par(mfrow = c(3, 4));
 for (i in 2:11) {
