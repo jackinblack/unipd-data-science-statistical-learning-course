@@ -167,17 +167,19 @@ by using the treshold method.
 ```{r}
 library(igraph, warn.conflicts = FALSE); library(gRbase, warn.conflicts = FALSE);
 
-threshold <- 1/5;
-covariance.matrix <- var( seoul.bike.data[2:11], use="pairwise.complete.obs" );
-correlation.matrix <- -cov2cor( solve(covariance.matrix) );
-independence.matrix <- abs( correlation.matrix ) > threshold;
-diag(independence.matrix) <- 0; # remove self dependencies
-independence.graph <- as( independence.matrix, "igraph" );
-plot(independence.graph);
+threshold 				<- 1/5;
+covariance.matrix 		<- var( seoul.bike.data[2:11], use="pairwise.complete.obs" );
+concentration.matrix 	<- -cov2cor( solve(covariance.matrix) );
+adjacency.matrix 		<- abs( concentration.matrix ) > threshold;
+diag(adjacency.matrix) 	<- 0; # remove self dependencies
+adjacency.graph 		<- as( adjacency.matrix, "igraph" );
+
+plot( adjacency.graph );
 ```
 
-We can notice how the graph clearly presents us with the fact that our target is correlated with a multitude of predictors in our dataset.
-On the contrary, Snowfall and Rainfall seem to not be linaerly correlated to the target but this fact alone does not mean we should remove
+The edge between our target and Hour suggests that there is a direct conditional dependency between these two variables.
+This means that knowing the value of Hour provides information about Rented.Bike.Count beyond what is explained by the other variables in the dataset.
+On the contrary, Snowfall and Rainfall seem to be independent but this alone does not imply we should remove
 these variables from our analysis.
 
 ## Scatter plots
