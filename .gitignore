@@ -49,13 +49,13 @@ po/*~
 rsconnect/
 
 # aux files
-.aux
+*.aux
 
 # toc files
-.toc
+*.toc
 
 # pdf files
-.pdf
+*.pdf
 
 # html files
-.html
+*.html
