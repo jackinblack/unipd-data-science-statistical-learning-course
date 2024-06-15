@@ -47,3 +47,15 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# aux files
+.aux
+
+# toc files
+.toc
+
+# pdf files
+.pdf
+
+# html files
+.html
