@@ -27,11 +27,11 @@ We proceed our in depth look at the dataset by importing and looking at the summ
 we use the built-in function read.csv of R.
 
 ```{r}
-seoul.bike.data <- read.csv(
+data <- read.csv(
 	file = "../data/SeoulBikeData.csv"
 	,sep = ","
 );
-nrow(seoul.bike.data); ncol(seoul.bike.data); summary(seoul.bike.data);
+nrow(data); ncol(data); summary(data);
 ```
 
 The proposed dataset consists of 1 target, namely Rented Bike count, and 13 predictors whose characteristics are described by 8760 rows.
@@ -61,7 +61,7 @@ If not handled properly, they can result in incorrect predictions. It's importan
 We notice that none of the predictors are reported as missing in the dataset's source, we proceed by checking this fact:
 
 ```{r}
-ceiling( colSums(is.na(seoul.bike.data)) / nrow(seoul.bike.data) * 100 );
+ceiling( colSums(is.na(data)) / nrow(data) * 100 );
 ```
 In our case this dataset doesn't present this problem.
 
@@ -70,14 +70,14 @@ assume that these values are attributed to a malfunctioning of the devices respo
 proceed by replacing these values with the median of the remaining values.
 
 ```{r}
-median.humidity <- median(seoul.bike.data$Humidity[seoul.bike.data$Humidity != 0], na.rm = TRUE);
-seoul.bike.data$Humidity[seoul.bike.data$Humidity == 0] <- median.humidity;
+median.humidity <- median(data$Humidity[data$Humidity != 0], na.rm = TRUE);
+data$Humidity[data$Humidity == 0] <- median.humidity;
 ```
 
 Here we also want to make sure that the dataset is coherent with itself. Specifically, we want to make sure that when the system is not operative there are no erroneous shares.
 ```{r}
-sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "No"]);
-sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "Yes"]);
+sum(data$Rented.Bike.Count[data$Functioning.Day == "No"]);
+sum(data$Rented.Bike.Count[data$Functioning.Day == "Yes"]);
 ```
 
 ## Data preprocessing
@@ -85,9 +85,9 @@ sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "Yes"])
 Our dataset contains the following categorical variables: Seasons, Holiday, Functional Day. As seen before R treats them as character variables but we need to transform them into factors for R to interpret them correctly.
 
 ```{r}
-seoul.bike.data$Seasons 		<- as.factor( seoul.bike.data$Seasons );
-seoul.bike.data$Holiday 		<- as.factor( seoul.bike.data$Holiday );
-seoul.bike.data$Functioning.Day <- as.factor( seoul.bike.data$Functioning.Day );
+data$Seasons 		<- as.factor( data$Seasons );
+data$Holiday 		<- as.factor( data$Holiday );
+data$Functioning.Day <- as.factor( data$Functioning.Day );
 ```
 
 Transforming everything into factors servers the following purpose
@@ -95,13 +95,37 @@ Transforming everything into factors servers the following purpose
 We also need to transform our predictors Date and Hour into a date format correctly interpretable by R.
 
 ```{r}
-seoul.bike.data$tmstmp <- strptime(
-	paste( seoul.bike.data$Date, seoul.bike.data$Hour )
+data$tmstmp <- strptime(
+	paste( data$Date, data$Hour )
 	,format="%d/%m/%Y %H"
 );
-seoul.bike.data$Date <- as.Date( seoul.bike.data$Date, format="%d/%m/%Y" );
-seoul.bike.data$tmstmp <- as.Date( seoul.bike.data$tmstmp );
+data$Date <- as.Date( data$Date, format="%d/%m/%Y" );
+data$tmstmp <- as.Date( data$tmstmp );
 ```
+
+
+```{r}
+# data$Hour<- as.factor(data$Hour);
+
+# this breaks the for loop next
+
+```
+
+This chunk needs explanation
+
+```{r}
+data <- data[data$Functioning.Day=="Yes",]
+
+# data <- subset(data, select = -c("Functioning.Day"))
+# data<-data[,c(-1, -14)]
+# data<-data[,c(-1, -14)]
+
+summary(data)
+```
+
+This chunk needs commenting...
+
+
 
 
 # Exploratory Data analysis
@@ -121,14 +145,14 @@ By plotting the distribution histograms we hope to identify the shape, central t
 ```{r}
 par(mfrow = c(3, 4));
 for (i in 2:11) {
-	hist(seoul.bike.data[[i]], right = FALSE, probability = TRUE
-		,main = paste("Histogram of", names(seoul.bike.data)[i])
-		,xlab = names(seoul.bike.data)[i], col = "skyblue", border = "white", cex.main = 0.8);
-	lines(density(seoul.bike.data[[i]]), col = "darkblue", lwd = 2);
-	var.mean <- mean(seoul.bike.data[[i]], na.rm = TRUE);
-	var.median <- median(seoul.bike.data[[i]], na.rm = TRUE);
-	unique.out <- unique(seoul.bike.data[[i]]);
-	var.mode <- unique.out[which.max(tabulate(match(seoul.bike.data[[i]], unique.out)))];
+	hist(data[[i]], right = FALSE, probability = TRUE
+		,main = paste("Histogram of", names(data)[i])
+		,xlab = names(data)[i], col = "skyblue", border = "white", cex.main = 0.8);
+	lines(density(data[[i]]), col = "darkblue", lwd = 2);
+	var.mean <- mean(data[[i]], na.rm = TRUE);
+	var.median <- median(data[[i]], na.rm = TRUE);
+	unique.out <- unique(data[[i]]);
+	var.mode <- unique.out[which.max(tabulate(match(data[[i]], unique.out)))];
 	
 	abline(v = var.mean, col = "#FF6347", lty = 1); # red
 	abline(v = var.median, col = "#4682B4", lty = 1); # blue
@@ -146,7 +170,7 @@ a correlation matrix.
 
 ```{r}
 library(corrplot, warn.conflicts = FALSE); corrplot(
-	cor(seoul.bike.data[2:11])
+	cor(data[2:11])
 	,method = "number"
 	,diag = FALSE
 	,tl.cex = 0.8
@@ -170,7 +194,7 @@ by using the treshold method.
 library(igraph, warn.conflicts = FALSE); library(gRbase, warn.conflicts = FALSE);
 
 threshold 				<- 1/5;
-covariance.matrix 		<- var( seoul.bike.data[2:11], use="pairwise.complete.obs" );
+covariance.matrix 		<- var( data[2:11], use="pairwise.complete.obs" );
 concentration.matrix 	<- -cov2cor( solve(covariance.matrix) );
 adjacency.matrix 		<- abs( concentration.matrix ) > threshold;
 diag(adjacency.matrix) 	<- 0; # remove self dependencies
@@ -186,19 +210,19 @@ these variables from our analysis.
 
 ## Scatter plots
 
-We now try plotting our target, in our case Rented Bike count, against the new timestamp variable we created
+We now try plotting our target, in our case Rented Bike count, against the new Date variable we created
 to see if we can notice any trends. With the help of a legend we split the dataset into all 4 seasons.
 
 ```{r}
 palette = c("Spring" = "#78C850", "Summer" = "#FFB14E"
 	,"Autumn" = "#DC143C", "Winter" = "#4B8BBE");
-plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
-	,col = palette[seoul.bike.data$Season], pch = 16
-	,cex = 0.5, main = "Bike shares vs. Timestamp"
-	,xlab = "Timestamp",ylab = "Rented Bike count" );
+plot(data$tmstmp, data$Rented.Bike.Count
+	,col = palette[data$Season], pch = 16
+	,cex = 0.5, main = "Bike shares vs. Date"
+	,xlab = "Date",ylab = "Rented Bike count" );
 legend("topleft", legend = names(palette), col = palette
 	,pch = 16, title = "Season", cex = 0.7);
-lines(loess.smooth(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 1);
+lines(loess.smooth(data$tmstmp, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 Here we notice how bike share demand peaks in summer and declines in winter implying that the bike
@@ -206,13 +230,13 @@ shares are high when the weather is warm.
 
 ```{r}
 palette <- colorRampPalette(c("darkblue", "skyblue", "orange", "red", "darkblue"))(24);
-plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
-	,col = palette[seoul.bike.data$Hour], pch = ifelse(seoul.bike.data$Holiday == "No Holiday", 16, 3)
-	,cex = 0.5, main = "Bike shares vs. Timestamp"
-	,xlab = "Timestamp", ylab = "Rented Bike count");
+plot(data$tmstmp, data$Rented.Bike.Count
+	,col = palette[data$Hour], pch = ifelse(data$Holiday == "No Holiday", 16, 3)
+	,cex = 0.5, main = "Bike shares vs. Date"
+	,xlab = "Date", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = palette
 	,pch = 16, title = "Hour", cex = 0.7);
-lines(loess.smooth(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 1);
+lines(loess.smooth(data$tmstmp, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 This plot allows us to notice that although the target is indeed influenced by Hour, the influence is not as
@@ -221,14 +245,15 @@ strong as for Temperature conforming with the result obtained in the correlation
 We now proceed to plot our target against Temperature to see if our assumptions have any foundation.
 
 ```{r}
-palette <- colorRampPalette( c("#6A3D9A", "#984EA3", "#7570B3", "#D95F0E", "#FF7F00", "#6A3D9A") )(24);
-plot(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count
-	,col = palette[seoul.bike.data$Hour], pch = ifelse(seoul.bike.data$Holiday == "No Holiday", 16, 3)
+palette = c("Spring" = "#78C850", "Summer" = "#FFB14E"
+	,"Autumn" = "#DC143C", "Winter" = "#4B8BBE");
+plot(data$Temperature, data$Rented.Bike.Count
+	,col = palette[data$Season], pch = ifelse(data$Holiday == "No Holiday", 16, 3)
 	,cex = 0.5, main = "Bike shares vs. Temperature"
 	,xlab = "Temperature", ylab = "Rented Bike count");
-legend("topleft", ncol = 3, legend = seq(1,24), col = palette
-	,pch = 16, title = "Hour", cex = 0.7);
-lines(loess.smooth(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 3);
+legend("topleft", legend = names(palette), col = palette
+	,pch = 16, title = "Season", cex = 0.7);
+lines(loess.smooth(data$Temperature, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 This plot shows us how bike shares are indeed influenced by temperature in a mostly linear manner.
@@ -237,16 +262,27 @@ we cannot conclude that this is true as we can clearly see that we have peaks ev
 
 ```{r}
 palette <- colorRampPalette( c("#1D4E89", "#D0E1F9", "#1D4E89") )(24);
-colors <- palette[seoul.bike.data$Hour + 1]
-plot(seoul.bike.data$Hour, seoul.bike.data$Rented.Bike.Count
+colors <- palette[data$Hour + 1]
+plot(data$Hour, data$Rented.Bike.Count
 	,col = colors
 	,xlab = "Hour", ylab = "Rented Bike count"
 	,main = "Bike shares vs. Hour"
 	,pch = 16, cex = 0.7);
-lines(loess.smooth(seoul.bike.data$Hour, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 In this plot we can notice how the correlation between the target and Hour is explained by shares peak during rush hour
+
+```{r}
+palette = c("Spring" = "#78C850", "Summer" = "#FFB14E"
+	,"Autumn" = "#DC143C", "Winter" = "#4B8BBE");
+plot(data$Humidity, data$Rented.Bike.Count
+	,col = palette[data$Season], pch = ifelse(data$Holiday == "No Holiday", 16, 3)
+	,cex = 0.5, main = "Bike shares vs. Humidity"
+	,xlab = "Humidity", ylab = "Rented Bike count");
+legend("topleft", legend = names(palette), col = palette
+	,pch = 16, title = "Season", cex = 0.7);
+lines(loess.smooth(data$Humidity, data$Rented.Bike.Count), lty = 1, col = 1);
+```	
 
 # Modelling
 
@@ -355,8 +391,8 @@ model1
 ```
 
 ```{r}
-mean_rented_bike_count <- mean(seoul.bike.data$Rented.Bike.Count)
-var_rented_bike_count <- var(seoul.bike.data$Rented.Bike.Count)
+mean_rented_bike_count <- mean(data$Rented.Bike.Count)
+var_rented_bike_count <- var(data$Rented.Bike.Count)
 
 # Print the mean and variance
 print(paste("Mean:", mean_rented_bike_count))
@@ -373,7 +409,7 @@ anova(model, model1, test = "Chisq")
 
 ```{r}
 future_data <- data.frame(
-  Date = as.Date(c("2024-07-01", "2024-07-02", "2024-07-03")),  # Future dates
+  # Date = as.Date(c("2024-07-01", "2024-07-02", "2024-07-03")),  # Future dates
   Temperature = c(25, 26, 27),  # Example future temperatures
   Humidity = c(60, 65, 70),     # Example future humidity levels
   Wind.speed = c(2, 3, 2.5),     # Example future wind speeds
