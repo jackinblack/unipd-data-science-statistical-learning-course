@@ -16,19 +16,10 @@ output:
 
 # Introduction
 
-A regression problem involves predicting a continuous numeric outcome using one or more input features. Linear regressors are based on the assumption that
-there is a linear relationship between both the dependent variable and independent variables. This project focuses on the applications of linear regressors
-on the Seoul Bike Sharing Demand dataset which incorporates real world bike sharing count of the city of Seoul with weather context ([the dataset can be retreived here](https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand)).
+This project presents a statistical analysis of the relationship between the number of rented bikes in a day and a wide range of atmospherical variables and time variables.
+To explore this relationship we will implement a poisson regression, a widely used model in the context of count data. The data we will use is from the Seoul Bike Sharing Demand dataset which incorporates real world bike sharing count of the city of Seoul with weather context ([the dataset can be retreived at this link https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand](https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand)).
 As major cities worldwide are moving towards smart mobility we hope to gain insight into how open-vehicle sharing systems could be optimized for efficiency
 through out the year by finding relationships between number of shares and weather.
-
-The outcomes of the project are expected to be the following:
-
-1. Understanding the siginficance of weather on bike sharing systems
-2. Ability to estimate bike count required at each hour
-3. Building statistical models exploiting this dataset
-
-\
 
 # Dataset insight
 
@@ -43,7 +34,7 @@ seoul.bike.data <- read.csv(
 nrow(seoul.bike.data); ncol(seoul.bike.data); summary(seoul.bike.data);
 ```
 
-We notice that the proposed dataset consists of 1 target, namely Rented Bike count, and 13 predictors whose characteristics are described by 8760 rows.
+The proposed dataset consists of 1 target, namely Rented Bike count, and 13 predictors whose characteristics are described by 8760 rows.
 The description of each predictor is given by the dataset's source as follows:
 
 | Variable Name         | Description                                          | Role    | Type        | Units | Missing Values |
@@ -65,28 +56,25 @@ The description of each predictor is given by the dataset's source as follows:
 
 ## Missing value imputation
 
+A key part of data preprocessing is dealing with missing values. These gaps can happen due to incomplete information or other reasons.
+If not handled properly, they can result in incorrect predictions. It's important to find and fix any missing values.
 We notice that none of the predictors are reported as missing in the dataset's source, we proceed by checking this fact:
 
 ```{r}
 ceiling( colSums(is.na(seoul.bike.data)) / nrow(seoul.bike.data) * 100 );
 ```
+In our case this dataset doesn't present this problem.
 
-A key part of data preprocessing is dealing with missing values. These gaps can happen due to incomplete information or other reasons.
-If not handled properly, they can result in incorrect predictions. It's important to find and fix any missing values but
-in our case this dataset doesn't present this problem.
-
-Notice how our Humidity predictor sometimes is reported as 0%, since this scenario is highly unlikely we assume that these values 
-are attributed to a malfunctioning of the devices responsible for this predictor. We proceed by replacing these values with the median
-of the remaining values.
+Notice how our Humidity predictor sometimes is reported as 0%, since this scenario is highly unlikely we
+assume that these values are attributed to a malfunctioning of the devices responsible for this predictor. We
+proceed by replacing these values with the median of the remaining values.
 
 ```{r}
-# take previous correct value and average with the one right after 
-median_humidity <- median(seoul.bike.data$Humidity[seoul.bike.data$Humidity != 0], na.rm = TRUE)
-seoul.bike.data$Humidity[seoul.bike.data$Humidity == 0] <- median_humidity
+median.humidity <- median(seoul.bike.data$Humidity[seoul.bike.data$Humidity != 0], na.rm = TRUE);
+seoul.bike.data$Humidity[seoul.bike.data$Humidity == 0] <- median.humidity;
 ```
 
-Here we also want to make sure that the dataset is coherent with itself. Specifically, we want to make sure that
-when the system is not operative there are no erroneous shares.
+Here we also want to make sure that the dataset is coherent with itself. Specifically, we want to make sure that when the system is not operative there are no erroneous shares.
 ```{r}
 sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "No"]);
 sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "Yes"]);
@@ -94,13 +82,12 @@ sum(seoul.bike.data$Rented.Bike.Count[seoul.bike.data$Functioning.Day == "Yes"])
 
 ## Data preprocessing
 
-Our dataset contains the following categorical variables: Seasons, Holiday, Functional Day. As seen before R treats them
-as character variables but we need to we therefore proceed to transform them into factors for R to interpret them correctly.
+Our dataset contains the following categorical variables: Seasons, Holiday, Functional Day. As seen before R treats them as character variables but we need to transform them into factors for R to interpret them correctly.
 
 ```{r}
-seoul.bike.data$Seasons 		<- factor( seoul.bike.data$Seasons );
-seoul.bike.data$Holiday 		<- factor( seoul.bike.data$Holiday, ordered = TRUE );
-seoul.bike.data$Functioning.Day <- factor( seoul.bike.data$Functioning.Day );
+seoul.bike.data$Seasons 		<- as.factor( seoul.bike.data$Seasons );
+seoul.bike.data$Holiday 		<- as.factor( seoul.bike.data$Holiday );
+seoul.bike.data$Functioning.Day <- as.factor( seoul.bike.data$Functioning.Day );
 ```
 
 Transforming everything into factors servers the following purpose
@@ -116,27 +103,41 @@ seoul.bike.data$Date <- as.Date( seoul.bike.data$Date, format="%d/%m/%Y" );
 seoul.bike.data$tmstmp <- as.Date( seoul.bike.data$tmstmp );
 ```
 
-Finally, we add the intercept to our data and transform the dataset into a matrix format.
-
-```{r}
-# delete
-seoul.bike.datam <- cbind(1, seoul.bike.data);
-seoul.bike.datam <- as.matrix( seoul.bike.data );
-```
-
-## Outliers and high-leverage points
-
-
-\
 
 # Exploratory Data analysis
 
-We begin this section of EDA by taking a look at the correlation matrix for our continuous predictors.
+Exploratory Data Analysis (EDA) is an important step in understanding data through summary statistics and visualizations. Its main purpose is to get a clear picture of the data before modelling. EDA helps identify patterns and trends, showing how data can be effectively used. It also sparks new research ideas by revealing unexpected relationships. Additionally, EDA helps find errors 
+and inconsistencies. It checks the basic assumptions needed for further analysis by looking at the distribution and variety of data. 
 
+In the next paragraphs we push to achieve the following:
+
+- learn variable distributions and suitability and for the poisson regression model
+- learn dependencies and patterns between variables
+
+## Distributions
+
+By plotting the distribution histograms we hope to identify the shape, central tendency, and spread of data, revealing patterns, outliers, and skewness of our predictors.
 
 ```{r}
-
+par(mfrow = c(3, 4));
+for (i in 2:11) {
+	hist(seoul.bike.data[[i]], right = FALSE, probability = TRUE
+		,main = paste("Histogram of", names(seoul.bike.data)[i])
+		,xlab = names(seoul.bike.data)[i], col = "skyblue", border = "white", cex.main = 0.8);
+	lines(density(seoul.bike.data[[i]]), col = "darkblue", lwd = 2);
+	var.mean <- mean(seoul.bike.data[[i]], na.rm = TRUE);
+	var.median <- median(seoul.bike.data[[i]], na.rm = TRUE);
+	unique.out <- unique(seoul.bike.data[[i]]);
+	var.mode <- unique.out[which.max(tabulate(match(seoul.bike.data[[i]], unique.out)))];
+	
+	abline(v = var.mean, col = "#FF6347", lty = 1); # red
+	abline(v = var.median, col = "#4682B4", lty = 1); # blue
+	abline(v = var.mode, col = "#3CB371", lty = 1); # green
+}
+# par(mfrow = c(1, 1));
 ```
+
+The target follows a poisson distribution...
 
 ## Correlation matrix
 
@@ -159,7 +160,7 @@ notice how Temperature and Dew point temperature are highly correlated which sig
 a confounding effect taking place.
 In the next paragraph, our objective is to investigate the most siginficant correlations with our target.
 
-## Independence graph
+## Partial correlation graph
 
 Partial correlation allows us to investigate the presence of linear relationships between variables with the effect of a set of controlling random
 variables removed. This in turn allows us to capture relationships more in depth compared to the classic correlation matrix. We proceed to build this graph
@@ -189,29 +190,29 @@ We now try plotting our target, in our case Rented Bike count, against the new t
 to see if we can notice any trends. With the help of a legend we split the dataset into all 4 seasons.
 
 ```{r}
-ssn.clr = c("Spring" = "#78C850", "Summer" = "#FFB14E"
+palette = c("Spring" = "#78C850", "Summer" = "#FFB14E"
 	,"Autumn" = "#DC143C", "Winter" = "#4B8BBE");
 plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
-	,col = ssn.clr[seoul.bike.data$Season], pch = 16
+	,col = palette[seoul.bike.data$Season], pch = 16
 	,cex = 0.5, main = "Bike shares vs. Timestamp"
 	,xlab = "Timestamp",ylab = "Rented Bike count" );
-legend("topleft", legend = names(ssn.clr), col = ssn.clr
+legend("topleft", legend = names(palette), col = palette
 	,pch = 16, title = "Season", cex = 0.7);
-lines(loess.smooth(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 1);
+lines(loess.smooth(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 Here we notice how bike share demand peaks in summer and declines in winter implying that the bike
 shares are high when the weather is warm.
 
 ```{r}
-hr.clr <- colorRampPalette( c("#D0E1F9", "#4B8BBE", "#1D4E89") )(24)
+palette <- colorRampPalette(c("darkblue", "skyblue", "orange", "red", "darkblue"))(24);
 plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
-	,col = hr.clr[seoul.bike.data$Hour], pch = ifelse(seoul.bike.data$Holiday == "No Holiday", 16, 3)
+	,col = palette[seoul.bike.data$Hour], pch = ifelse(seoul.bike.data$Holiday == "No Holiday", 16, 3)
 	,cex = 0.5, main = "Bike shares vs. Timestamp"
 	,xlab = "Timestamp", ylab = "Rented Bike count");
-legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
+legend("topleft", ncol = 3, legend = seq(1,24), col = palette
 	,pch = 16, title = "Hour", cex = 0.7);
-lines(loess.smooth(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 1);
+lines(loess.smooth(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 This plot allows us to notice that although the target is indeed influenced by Hour, the influence is not as
@@ -220,14 +221,14 @@ strong as for Temperature conforming with the result obtained in the correlation
 We now proceed to plot our target against Temperature to see if our assumptions have any foundation.
 
 ```{r}
-hr.clr <- colorRampPalette(c("#6A3D9A", "#984EA3", "#7570B3", "#D95F0E", "#FF7F00"))(24)
+palette <- colorRampPalette( c("#6A3D9A", "#984EA3", "#7570B3", "#D95F0E", "#FF7F00", "#6A3D9A") )(24);
 plot(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count
-	,col = hr.clr[seoul.bike.data$Hour], pch = ifelse(seoul.bike.data$Holiday == "No Holiday", 16, 3)
+	,col = palette[seoul.bike.data$Hour], pch = ifelse(seoul.bike.data$Holiday == "No Holiday", 16, 3)
 	,cex = 0.5, main = "Bike shares vs. Temperature"
 	,xlab = "Temperature", ylab = "Rented Bike count");
-legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
+legend("topleft", ncol = 3, legend = seq(1,24), col = palette
 	,pch = 16, title = "Hour", cex = 0.7);
-lines(loess.smooth(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 3);
+lines(loess.smooth(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 3);
 ```
 
 This plot shows us how bike shares are indeed influenced by temperature in a mostly linear manner.
@@ -235,268 +236,165 @@ Although the correlation between target and Hour is relatively significant, by i
 we cannot conclude that this is true as we can clearly see that we have peaks even at late hours.
 
 ```{r}
-par(mfrow = c(1, 2));
-hday.clr = c("No holiday" = "#6A3D9A", "Holiday" = "#FF7F00");
-plot(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count
-	,col = hday.clr[seoul.bike.data$Holiday], pch = 16
-	,cex = 0.5, main = "Bike shares vs. Temperature"
-	,xlab = "Temperature", ylab = "Rented Bike count");
-legend("topleft", legend = names(hday.clr), col = hday.clr
-	,pch = 16, title = "Holiday", cex = 0.7);
-lines(loess.smooth(seoul.bike.data$Temperature, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 1);
-plot(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count
-	,col = hday.clr[seoul.bike.data$Holiday], pch = 16
-	,cex = 0.5, main = "Bike shares vs. Timestamp"
-	,xlab = "Timestamp", ylab = "Rented Bike count");
-legend("topleft", legend = names(hday.clr), col = hday.clr
-	,pch = 16, title = "Holiday", cex = 0.7);
-lines(loess.smooth(seoul.bike.data$tmstmp, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 1);
-```
-
-```{r}
-classify_weather <- function(wind_speed, humidity, temperature, visibility, solar_radiation, rainfall, snowfall) {
-if (rainfall > 0 | snowfall > 0) {
-	return("Wet")
-}  
-else if (solar_radiation > 0.5) {
-	return("Sunny")
-}  
-else if (temperature < 0) {
-	return("Cold")
-}  
-else if (temperature > 25) {
-	return("Hot")
-}  
-else if (humidity > 80) {
-	return("Humid")
-}  
-else if (wind_speed > 5) {
-	return("Windy")
-}  else {
-	return("Moderate")
-}
-
-}
-
-# Apply the function to create a new weather variable
-seoul.bike.data$Weather <- mapply(classify_weather,
-								seoul.bike.data$Wind.speed,
-								seoul.bike.data$Humidity,
-								seoul.bike.data$Temperature,
-								seoul.bike.data$Visibility,
-								seoul.bike.data$Solar.Radiation,
-								seoul.bike.data$Rainfall,
-								seoul.bike.data$Snowfall)
-
-boxplot(Rented.Bike.Count ~ Weather, data = seoul.bike.data,
-		xlab = "Weather Condition", ylab = "Bike Count",
-		main = "Bike Count vs. Weather Condition",
-		col = c("skyblue", "lightgreen", "orange", "lightcoral", "lightgoldenrod", "lightcyan", "lavender"),
-		border = "black", las = 1, cex.axis = 0.8)
-
-# Optional: Add mean points
-means <- tapply(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Weather, mean)
-points(1:length(means), means, col = "red", pch = 18)
-count_outliers <- function(x) {
-Q1 <- quantile(x, 0.25, na.rm = TRUE)
-Q3 <- quantile(x, 0.75, na.rm = TRUE)
-IQR <- Q3 - Q1
-lower_bound <- Q1 - 1.5 * IQR
-upper_bound <- Q3 + 1.5 * IQR
-outliers <- x[x < lower_bound | x > upper_bound]
-return(length(outliers))
-}
-
-# Apply the function to each category in the dataset
-outlier_counts <- tapply(seoul.bike.data$Rented.Bike.Count, seoul.bike.data$Weather, count_outliers)
-
-# Print the number of outliers for each category
-print(outlier_counts)
-```
-
-```{r}
-par(mfrow = c(2, 2));
-wthr.clr = c("Sunny" = "#f7e8f8", "Moderate" = "#e3bce7", "Windy" = "#d090d6",
-	"Cold" = "#bc63c5", "Hot" = "#a838b4", "Humid" = "#9306a3", "Wet" = "#7d0072");
-boxplot(Rented.Bike.Count ~ weekdays(seoul.bike.data$tmstmp), data = seoul.bike.data
-	,xlab = "Day of the Week", ylab = "Rented Bike count"
-	,main = "Bike shares vs. Day of the Week"
-	,col = c("lightpink", "lightblue", "lightgreen", "lightcoral", "lightgoldenrod", "lightcyan", "lavender"));
-plot(seoul.bike.data$Humidity, seoul.bike.data$Rented.Bike.Count
-	,xlab = "Humidity (%)", ylab = "Rented Bike count"
-	,main = "Bike shares vs. Humidity"
-	,col = wthr.clr[seoul.bike.data$Weather], pch = ifelse(seoul.bike.data$Holiday == "No Holiday", 16, 3)
-	,cex = 0.7);
-legend("topleft", ncol = 2, legend = names(wthr.clr), col = wthr.clr
-	,pch = 16, title = "Weather cond.", cex = 0.4);
-lines(loess.smooth(seoul.bike.data$Humidity, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 1);
-plot(seoul.bike.data$Wind.speed, seoul.bike.data$Rented.Bike.Count
-	,xlab = "Wind Speed (m/s)", ylab = "Rented Bike count"
-	,main = "Bike shares vs. Wind Speed"
-	,col = wthr.clr[seoul.bike.data$Weather], pch = ifelse(seoul.bike.data$Holiday == "No Holiday", 16, 3)
-	,cex = 0.7);
-legend("topright", ncol = 2, legend = names(wthr.clr), col = wthr.clr
-	,pch = 16, title = "Weather cond.", cex = 0.4);
-lines(loess.smooth(seoul.bike.data$Wind.speed, seoul.bike.data$Rented.Bike.Count), lty = 1,col = 1);
+palette <- colorRampPalette( c("#1D4E89", "#D0E1F9", "#1D4E89") )(24);
+colors <- palette[seoul.bike.data$Hour + 1]
 plot(seoul.bike.data$Hour, seoul.bike.data$Rented.Bike.Count
+	,col = colors
 	,xlab = "Hour", ylab = "Rented Bike count"
 	,main = "Bike shares vs. Hour"
-	,col = "skyblue", pch = 16, cex = 0.7);
+	,pch = 16, cex = 0.7);
+lines(loess.smooth(seoul.bike.data$Hour, seoul.bike.data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
-
-```{r}
-is.factor(seoul.bike.data$Holiday)
-boxplot(log(seoul.bike.data$Rented.Bike.Count) ~ weekdays(seoul.bike.data$tmstmp))
-boxplot((seoul.bike.data$Rented.Bike.Count) ~ (seoul.bike.data$Holiday))
-bartlett.test((seoul.bike.data$Rented.Bike.Count) ~ weekdays(seoul.bike.data$tmstmp))
-bartlett.test((seoul.bike.data$Rented.Bike.Count) ~ (seoul.bike.data$Holiday))
-anova_result <-aov((seoul.bike.data$Rented.Bike.Count) ~ weekdays(seoul.bike.data$tmstmp))
-summary(anova_result)
-anova_result <-aov((seoul.bike.data$Rented.Bike.Count) ~ (seoul.bike.data$Holiday))
-summary(anova_result)
-anova_result <- aov(Rented.Bike.Count ~ Seasons, data = seoul.bike.data)
-summary(anova_result)
-
-```
-
-
-```{r}
-
-
-# Assign weights to each variable based on assumed or known importance
-# Adjust weights to ensure the sum results in a non-negative score
-# These weights can be adjusted based on domain knowledge or data analysis
-weights <- c(Temperature = 0.25, Humidity = 0.15, WindSpeed = 0.10,
-			Visibility = 0.20, SolarRadiation = 0.15, Rainfall = 0.05, Snowfall = 0.10)
-
-# Calculate the weather score as a weighted sum of the standardized variables
-seoul.bike.data$WeatherScore <- (weights["Temperature"] * seoul.bike.data$Temperature +
-								weights["Humidity"] * seoul.bike.data$Humidity +
-								weights["WindSpeed"] * seoul.bike.data$Wind.speed +
-								weights["Visibility"] * seoul.bike.data$Visibility +
-								weights["SolarRadiation"] * seoul.bike.data$Solar.Radiation +
-								weights["Rainfall"] * seoul.bike.data$Rainfall +
-								weights["Snowfall"] * seoul.bike.data$Snowfall)
-hr.clr <- colorRampPalette(c("red", "yellow", "green"))(24)
-plot(log(seoul.bike.data$WeatherScore), seoul.bike.data$Rented.Bike.Count
-	,col = hr.clr[seoul.bike.data$Hour], pch = 16
-	,cex = 0.5, main = "Bike shares vs. WeatherScore"
-	,xlab = "WeatherScore", ylab = "Rented Bike count");
-legend("topleft", ncol = 3, legend = seq(1,24), col = hr.clr
-,pch = 16, title = "Hour", cex = 0.7);
-```
-
-```{r}
-inv.logit <- function(x) {
-return(x/(1+x))
-}
-library(glmnet)
-grid <- 10^seq(3, -2, length=100)
-predictors <- c("Temperature", "Humidity", "Wind.speed", "Visibility", "Solar.Radiation", "Rainfall", "Snowfall")
-response <- "Rented.Bike.Count"
-
-# Create a matrix of predictors
-X <- as.matrix(seoul.bike.data[, predictors])
-
-# Create a vector of the response variable
-y <- seoul.bike.data[, response]
-X <- scale(X)
-
-# Split the data into training and testing sets
-set.seed(123) # for reproducibility
-train_index <- sample(1:nrow(seoul.bike.data), 0.95 * nrow(seoul.bike.data)) # 70% for training
-train_data <- seoul.bike.data[train_index, ]
-test_data <- seoul.bike.data[-train_index, ]
-
-# Train the Lasso model
-lasso_model <- glmnet(x = X[train_index, ], y = y[train_index], alpha = 1)
-
-# Tune the Lasso model using cross-validation
-cv_lasso <- cv.glmnet(x = X[train_index, ], y = y[train_index], alpha = 1)
-#lasso_pred <- predict(lasso_model, newx = X[-train_index, ], s = "lambda.min")
-optimal_lambda <- cv_lasso$lambda.min
-lasso_pred <- predict(lasso_model, newx = X[-train_index, ], s = optimal_lambda)
-
-# Calculate the mean squared error
-mse <- mean((lasso_pred - y[-train_index])^2)
-
-# Calculate the total sum of squares (TSS)
-tss <- sum((y[-train_index] - mean(y[-train_index]))^2)
-
-# Calculate R-squared
-r_squared <- 1 - mse / tss
-
-# Print the R-squared value
-print(r_squared)
-# Get the optimal value of lambda
-
-sqrt(sum(coef(lasso_model)[-1,50]^2))
-sqrt(sum(coef(lasso_model)[-1,50]^2))
-
-plot(lasso_model, xvar="lambda", label=TRUE)
-abline(v=log(lasso_model$lambda[50]), lty=3, lwd=2)
-
-# Evaluate the model performance on the testing data
-cor(seoul.bike.data$Rented.Bike.Count, (seoul.bike.data$WeatherScore)^1/3)
-```
-
-## Distribution
-
-The ﬁrst step in most data analysis applications is the exploration of the statistical properties of the variables. This is typically
-achieved by plotting the probability densities, which succinctly summarize each variable for visualization. One way to obtain an
-empirical non-parametric density estimate is by using histograms. Although histograms are considered crude for most advanced statistical
-applications, they have the great advantage of making no prior assumptions regarding the distribution of the examined variable
-and are very simple to compute. Often, this preliminary step can reveal whether the variable follows a Gaussian (normal) distribution,
-which is characterized by a unimodal peak in the middle of the variables possible range of values, is completely symmetric,
-and is particularly useful because a large number of mathematical functions are applicable.
-
-```{r}
-par(mfrow = c(3, 4));
-for (i in 2:11) {
-	hist(seoul.bike.data[[i]], breaks = 30, probability = TRUE
-		,main = paste("Histogram of", names(seoul.bike.data)[i])
-		,xlab = names(seoul.bike.data)[i], col = "skyblue", border = "white", cex.main = 0.8);
-	lines(density(seoul.bike.data[[i]]), col = "darkblue", lwd = 2);
-	var.mean <- mean(seoul.bike.data[[i]], na.rm = TRUE);
-	var.median <- median(seoul.bike.data[[i]], na.rm = TRUE);
-	unique.res <- unique(seoul.bike.data[[i]])
-	var.mode <- unique.res[which.max(tabulate(match(seoul.bike.data[[i]], unique.res)))]
-	
-	abline(v = var.mean, col = "#FF6347", lty = 1); # red
-	abline(v = var.median, col = "#4682B4", lty = 1); # blue
-	abline(v = var.mode, col = "#3CB371", lty = 1); # green
-}
-# par(mfrow = c(1, 1));
-```
+In this plot we can notice how the correlation between the target and Hour is explained by shares peak during rush hour
 
 # Modelling
-In this step you may, for example, use regression and predictions for forecasting future
-values, and classification to identify groups.
-One of the first things you need to do in modelling data is to reduce the dimensionality
-of your data set. Not all your features or values are essential to predicting your model.
-What you need to do is to select the relevant ones that contribute to the prediction
-of results or apply shrinkage regressions.
 
+## Variables of interest
 
-We proceed with modelling several predictive models covered during the course:
+## Poisson distribution and Poisson regression model
 
-1. Multiple Linear Regressor
-2. Poisson Regressor
-3. Ridge Regression
-4. Lasso Regression
+If the discrete random variable ${Y}$ has Poisson distribution with intensity or rate parameter ${\mu}$, ${\mu}$ > 0, then ${Y}$ has the density:
+
+$${\Pr(Y = y) = \frac{e^{-\mu} \mu^y}{y!}, \quad y = 0, 1, \ldots}$$
+
+where ${E(Y) = \operatorname{Var}(Y) = \mu}$. Equality of mean and variance of Poisson distribution is referred to as the equi-dispersion property
+of Poisson, which is mostly violated in real life data.
+
+The Poisson regression is a generalized linear model (GLM) mainly used for count data and contingency tables. GLMs are characterized by three 
+essential components:
+
+1. The data ${y = \{y_1, y_2, \ldots, y_n\}}$ are assumed to be independently distributed with means:
+   $${\mu = \{\mu_1, \mu_2, \ldots, \mu_n\}}$$
+
+2. The (systematic) linear model predicts:
+   ${Y = \{Y_1, Y_2, \ldots, Y_n\}}$,
+   from parameters ${\beta}$ via a known matrix of coefficients ${X}$
+   $${Y = X\beta}$$
+
+3. Finally, ${\mu}$ is related to ${Y}$ by a linking function: $${\mu = f(Y)}$$
+
+Component (2) is the same for all GLM while the other components vary. In a Poisson regression we have at component (1) a Poisson distribution, 
+and at component (3) ${\mu = e^Y}$ as a link function.
+
+## Offset and exposure
+
+Poisson regression can also be suitable for rate data, where the rate is a count of events divided by some measure of that unit's exposure. 
+More generally, event rates can be calculated as events per unit time, which allows the observation window to vary for each unit. In our project,
+this variability arises due to differences in possible rentable bikes across days. To account for this difference an offset could be employed. 
+An offset is a fixed known value that is added to the linear predictor in the model. It is used when you have prior knowledge or a fixed 
+adjustment factor that needs to be accounted for in the model. Let's see how it works in practice:
+
+$${\log\left(\frac{E(y)}{t}\right) = b_0 + b_1 x}$$
+
+where ${y}$ = dependent variable (count); ${{E(y)}}$ = Expected count value; ${x}$ = independent variable; ${b_0, b_1}$ are the regression
+coefficients; and ${\frac{E(y)}{t}}$ = rate (i.e., count/exposure). The equation is then re-written as:
+
+$${\log(E(y)) - \log(t) = b_0 + b_1 x}$$
+$${\log(E(y)) = b_0 + b_1 x + \log(t)}$$
+
+where ${\log(t)}$ is the offset of the variable. In our project we decided not to employ an offset because the period we take into 
+consideration is only 1 year, and there wasn't a significant increase of available bikes during this period.
+
+## Poisson model
+The first model we created was a poisson regression where Rented.Bike.Count is the dependent variable, and all the other columns in the pre-processed dataset are the indepent variables. 
+```{r}
+data <- read.csv("../data/SeoulBikeData.csv")
+data<-data[data$Functioning.Day=="Yes",]
+data<-data[,c(-1, -14)]
+data$Holiday <- as.factor(data$Holiday)
+data$Seasons <- as.factor(data$Seasons)
+data$Hour<- as.factor(data$Hour)
+
+model <- glm(Rented.Bike.Count ~., family = poisson(link = "log"), data=data)
+summary(model)
+library(car)
+vif(model)
+```
+From the summary we can see that all the variables came out as significant. Since our exploratory data analysis made us suspect that collinearity might be present we also decided to run a Variance Inflation Factor analysis. From it we can see how temperature.C. and Dew.point.temperature..C. have a high VIF value. In our second model we decided to refit a poisson regression but without Dew.point.temperature..C. this time. Here's the result:
+
+```{r}
+model1 <- glm(Rented.Bike.Count~.-Dew.point.temperature, family = "poisson", data=data)
+summary(model1)
+vif(model1)
+```
+We can see that by eliminating Dew.point.temperature..C. we see a significant improvement in the VIF results. The resulting model shows positive coefficient for Hour7 to Hour9, and for Hour15 to Hour23 with Hour24 as the benchmark factor. Temperature.C., Solar.Radiation..MJ.m2., and Holiday also exhibit a positive coefficient, meaning that the model will predict a higher value for the dependent variable as the covariate value increases, with a small p-value indicating high significance. All the other variables have a negative coefficients meaning that the model will predict a lower value for the dependent variable as the covariate value increases.
 
 ## Diagnostics
+Now we will plot the diagnostic plots for model 1:
+```{r}
+par(mfrow = c(2, 2))
+plot(model1)
+```
+The results from these graphs show that the model is having some issues fitting to the data. This is maybe due to outliers, overdispersion/underdispersion or the lack of an offset.
 
-## Residual analysis
+A limitation of the Poisson model is its implicit assumption that the variance of ${y_i}$ equals its mean.
+This is a restrictive property and often fails to hold in practice as there is over dispersion
+in the data. When the dependent variable is over-dispersed, e.g. the variance of average daily
+ridership data is greater than its mean, the Poisson regression model cannot be employed
 
-## Outliers and high-leverage points
+```{r}
+par(mfrow = c(1, 3))
+plot(predict(model1, type = "link"), rstandard(model1))
+abline(h = 0)
+plot(predict(model1, type = "response"), rstandard(model1))
+abline(h = 0)
+qqnorm(rstandard(model1))
+qqline(rstandard(model1))
+```
 
-## Collinearity
+```{r}
+deviance(model)
+deviance(model1)
 
-## ANOVA
+model.residual.deviance <- model$deviance
+model1.residual.deviance <- model1$deviance
 
+model 
+model1
+```
 
+```{r}
+mean_rented_bike_count <- mean(seoul.bike.data$Rented.Bike.Count)
+var_rented_bike_count <- var(seoul.bike.data$Rented.Bike.Count)
+
+# Print the mean and variance
+print(paste("Mean:", mean_rented_bike_count))
+print(paste("Variance:", var_rented_bike_count))
+```
+
+## Model comparisons
+
+```{r}
+anova(model, model1, test = "Chisq")
+```
+
+## Prediction
+
+```{r}
+future_data <- data.frame(
+  Date = as.Date(c("2024-07-01", "2024-07-02", "2024-07-03")),  # Future dates
+  Temperature = c(25, 26, 27),  # Example future temperatures
+  Humidity = c(60, 65, 70),     # Example future humidity levels
+  Wind.speed = c(2, 3, 2.5),     # Example future wind speeds
+  Hour = factor(1),
+  Visibility = 1000,
+  Dew.point.temperature = 10,
+  Solar.Radiation = 0.1,
+  Rainfall = 0,
+  Snowfall = 0,
+  Seasons = "Summer",
+  Holiday = "No Holiday"
+  
+
+  # Add other predictors as necessary
+)
+future_data$Predicted.Bike.Count <- predict(model1, newdata = future_data, type = "response")
+predict(model1, newdata = future_data, type = "response")
+
+# View the predictions
+print(future_data)
+```
 
 # Conclusions
 
