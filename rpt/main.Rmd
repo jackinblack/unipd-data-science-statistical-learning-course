@@ -434,10 +434,11 @@ print(future_data)
 
 # Conclusions
 
-Interpreting data refers to the presentation of your analysis. Technical details are nec-
-essary but make an effort to make you presentation accessible also to a non-technical
-audience. You should deliver the results to answer the questions you asked when we
-first started the project, together with the actionable insights that you found through
-the process.
-In this process, technical skills only are not sufficient. One essential skill you need is
-to be able to tell a clear and actionable story.
+This project undertook a statistical examination of the intricate relationship between the number of rented bikes in a particular hour, and the weather present at the same time. The analysis incorporated a comprehensive dataset encompassing various meteorological factors, alongside "Rented Bike count".
+Exploratory data analysis reinforced the notion of a significant correlation between the weather experienced, the hour of the day, and the number of bikes rented. The visual correlations we saw were mostly confirmed by our Poisson model.
+However our analysis it's not without limitations:
+Offset: While in our project we assumed that the lack of an offset wouldn't affect our models too much, this might have been a faulty assumption. 
+Temporal considerations: our project did not present a time series analysis, and failing to account for it, could have a significant effect on the results.
+Equidispersion: The poisson model we implemented assumes the equidispersion of our data. This assumption is often violated with real-life data and future research should look into it.
+
+In conclusion, this project has contributed valuable insights into the intricate connection between the number of rented bikes in a particular hour, and the weather present at the same time. Addressing the identified limitations in future research will help us understand these relationships even further, and make it more possible to formulate statements on the role of the weather with more confidence than the one we could use in this conclusion.
