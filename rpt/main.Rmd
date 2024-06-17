@@ -65,20 +65,15 @@ ceiling( colSums(is.na(data)) / nrow(data) * 100 );
 ```
 In our case this dataset doesn't present this problem.
 
-Notice how our Humidity predictor sometimes is reported as 0%, since this scenario is highly unlikely we
-assume that these values are attributed to a malfunctioning of the devices responsible for this predictor. We
-proceed by replacing these values with the median of the remaining values.
-
-```{r}
-median.humidity <- median(data$Humidity[data$Humidity != 0], na.rm = TRUE);
-data$Humidity[data$Humidity == 0] <- median.humidity;
-```
-
 Here we also want to make sure that the dataset is coherent with itself. Specifically, we want to make sure that when the system is not operative there are no erroneous shares.
 ```{r}
 sum(data$Rented.Bike.Count[data$Functioning.Day == "No"]);
 sum(data$Rented.Bike.Count[data$Functioning.Day == "Yes"]);
 ```
+
+Notice, also in the summary, how our Humidity predictor sometimes is reported as 0(%), since this scenario is highly unlikely
+in a real world scenario we assume that these values are attributed to a malfunctioning of the devices responsible for this predictor.
+We will adopt an interpolating technique to address this issue in the following paragraph.
 
 ## Data preprocessing
 
@@ -103,6 +98,12 @@ data$Date <- as.Date( data$Date, format="%d/%m/%Y" );
 data$tmstmp <- as.Date( data$tmstmp );
 ```
 
+As described in the above paragraph, we proceed by replacing the missing humidity values with the median of the remaining correct values.
+
+```{r}
+median.humidity <- median(data$Humidity[data$Humidity != 0], na.rm = TRUE);
+data$Humidity[data$Humidity == 0] <- median.humidity;
+```
 
 ```{r}
 # data$Hour<- as.factor(data$Hour);
@@ -130,8 +131,8 @@ This chunk needs commenting...
 
 # Exploratory Data analysis
 
-Exploratory Data Analysis (EDA) is an important step in understanding data through summary statistics and visualizations. Its main purpose is to get a clear picture of the data before modelling. EDA helps identify patterns and trends, showing how data can be effectively used. It also sparks new research ideas by revealing unexpected relationships. Additionally, EDA helps find errors 
-and inconsistencies. It checks the basic assumptions needed for further analysis by looking at the distribution and variety of data. 
+Exploratory Data Analysis (EDA) is an important step in understanding data through summary statistics and visualizations. Its main purpose is to get a clear picture of the data before modelling. EDA helps identify patterns and trends, showing how data can be effectively used. It also sparks new research ideas by revealing unexpected relationships. Additionally, EDA helps find errors
+and inconsistencies. It checks the basic assumptions needed for further analysis by looking at the distribution and variety of data.
 
 In the next paragraphs we push to achieve the following:
 
@@ -153,7 +154,7 @@ for (i in 2:11) {
 	var.median <- median(data[[i]], na.rm = TRUE);
 	unique.out <- unique(data[[i]]);
 	var.mode <- unique.out[which.max(tabulate(match(data[[i]], unique.out)))];
-	
+
 	abline(v = var.mean, col = "#FF6347", lty = 1); # red
 	abline(v = var.median, col = "#4682B4", lty = 1); # blue
 	abline(v = var.mode, col = "#3CB371", lty = 1); # green
@@ -282,7 +283,7 @@ plot(data$Humidity, data$Rented.Bike.Count
 legend("topleft", legend = names(palette), col = palette
 	,pch = 16, title = "Season", cex = 0.7);
 lines(loess.smooth(data$Humidity, data$Rented.Bike.Count), lty = 1, col = 1);
-```	
+```
 
 # Modelling
 
@@ -297,7 +298,7 @@ $${\Pr(Y = y) = \frac{e^{-\mu} \mu^y}{y!}, \quad y = 0, 1, \ldots}$$
 where ${E(Y) = \operatorname{Var}(Y) = \mu}$. Equality of mean and variance of Poisson distribution is referred to as the equi-dispersion property
 of Poisson, which is mostly violated in real life data.
 
-The Poisson regression is a generalized linear model (GLM) mainly used for count data and contingency tables. GLMs are characterized by three 
+The Poisson regression is a generalized linear model (GLM) mainly used for count data and contingency tables. GLMs are characterized by three
 essential components:
 
 1. The data ${y = \{y_1, y_2, \ldots, y_n\}}$ are assumed to be independently distributed with means:
@@ -310,15 +311,15 @@ essential components:
 
 3. Finally, ${\mu}$ is related to ${Y}$ by a linking function: $${\mu = f(Y)}$$
 
-Component (2) is the same for all GLM while the other components vary. In a Poisson regression we have at component (1) a Poisson distribution, 
+Component (2) is the same for all GLM while the other components vary. In a Poisson regression we have at component (1) a Poisson distribution,
 and at component (3) ${\mu = e^Y}$ as a link function.
 
 ## Offset and exposure
 
-Poisson regression can also be suitable for rate data, where the rate is a count of events divided by some measure of that unit's exposure. 
+Poisson regression can also be suitable for rate data, where the rate is a count of events divided by some measure of that unit's exposure.
 More generally, event rates can be calculated as events per unit time, which allows the observation window to vary for each unit. In our project,
-this variability arises due to differences in possible rentable bikes across days. To account for this difference an offset could be employed. 
-An offset is a fixed known value that is added to the linear predictor in the model. It is used when you have prior knowledge or a fixed 
+this variability arises due to differences in possible rentable bikes across days. To account for this difference an offset could be employed.
+An offset is a fixed known value that is added to the linear predictor in the model. It is used when you have prior knowledge or a fixed
 adjustment factor that needs to be accounted for in the model. Let's see how it works in practice:
 
 $${\log\left(\frac{E(y)}{t}\right) = b_0 + b_1 x}$$
@@ -329,11 +330,11 @@ coefficients; and ${\frac{E(y)}{t}}$ = rate (i.e., count/exposure). The equation
 $${\log(E(y)) - \log(t) = b_0 + b_1 x}$$
 $${\log(E(y)) = b_0 + b_1 x + \log(t)}$$
 
-where ${\log(t)}$ is the offset of the variable. In our project we decided not to employ an offset because the period we take into 
+where ${\log(t)}$ is the offset of the variable. In our project we decided not to employ an offset because the period we take into
 consideration is only 1 year, and there wasn't a significant increase of available bikes during this period.
 
 ## Poisson model
-The first model we created was a poisson regression where Rented.Bike.Count is the dependent variable, and all the other columns in the pre-processed dataset are the indepent variables. 
+The first model we created was a poisson regression where Rented.Bike.Count is the dependent variable, and all the other columns in the pre-processed dataset are the indepent variables.
 ```{r}
 data <- read.csv("../data/SeoulBikeData.csv")
 data<-data[data$Functioning.Day=="Yes",]
@@ -386,7 +387,7 @@ deviance(model1)
 model.residual.deviance <- model$deviance
 model1.residual.deviance <- model1$deviance
 
-model 
+model
 model1
 ```
 
@@ -421,7 +422,7 @@ future_data <- data.frame(
   Snowfall = 0,
   Seasons = "Summer",
   Holiday = "No Holiday"
-  
+
 
   # Add other predictors as necessary
 )
@@ -437,7 +438,7 @@ print(future_data)
 This project undertook a statistical examination of the intricate relationship between the number of rented bikes in a particular hour, and the weather present at the same time. The analysis incorporated a comprehensive dataset encompassing various meteorological factors, alongside "Rented Bike count".
 Exploratory data analysis reinforced the notion of a significant correlation between the weather experienced, the hour of the day, and the number of bikes rented. The visual correlations we saw were mostly confirmed by our Poisson model.
 However our analysis it's not without limitations:
-Offset: While in our project we assumed that the lack of an offset wouldn't affect our models too much, this might have been a faulty assumption. 
+Offset: While in our project we assumed that the lack of an offset wouldn't affect our models too much, this might have been a faulty assumption.
 Temporal considerations: our project did not present a time series analysis, and failing to account for it, could have a significant effect on the results.
 Equidispersion: The poisson model we implemented assumes the equidispersion of our data. This assumption is often violated with real-life data and future research should look into it.
 
