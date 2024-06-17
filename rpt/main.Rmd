@@ -24,12 +24,18 @@ through out the year by finding relationships between number of shares and weath
 # Dataset insight
 
 We proceed our in depth look at the dataset by importing and looking at the summary. The format of the dataset is csv, to read it
-we use the built-in function read.csv of R.
+we use the built-in function read.csv of R. We decide to use a naming convention for our predictors in order to avoid misinterpetations of special characters present in the dataset file.
 
 ```{r}
+data.col.names = c("Date", "Rented.Bike.Count", "Hour", "Temperature"
+	,"Humidity", "Wind.speed", "Visibility", "Dew.point.temperature"
+	,"Solar.Radiation", "Rainfall", "Snowfall", "Seasons"
+	,"Holiday", "Functioning.Day");
 data <- read.csv(
 	file = "../data/SeoulBikeData.csv"
 	,sep = ","
+	,check.names = FALSE
+	,col.names = data.col.names
 );
 nrow(data); ncol(data); summary(data);
 ```
@@ -336,7 +342,6 @@ consideration is only 1 year, and there wasn't a significant increase of availab
 ## Poisson model
 The first model we created was a poisson regression where Rented.Bike.Count is the dependent variable, and all the other columns in the pre-processed dataset are the indepent variables.
 ```{r}
-data <- read.csv("../data/SeoulBikeData.csv")
 data<-data[data$Functioning.Day=="Yes",]
 data<-data[,c(-1, -14)]
 data$Holiday <- as.factor(data$Holiday)
@@ -348,14 +353,14 @@ summary(model)
 library(car)
 vif(model)
 ```
-From the summary we can see that all the variables came out as significant. Since our exploratory data analysis made us suspect that collinearity might be present we also decided to run a Variance Inflation Factor analysis. From it we can see how temperature.C. and Dew.point.temperature..C. have a high VIF value. In our second model we decided to refit a poisson regression but without Dew.point.temperature..C. this time. Here's the result:
+From the summary we can see that all the variables came out as significant. Since our exploratory data analysis made us suspect that collinearity might be present we also decided to run a Variance Inflation Factor analysis. From it we can see how Temperature and Dew.point.temperature have a high VIF value. In our second model we decided to refit a poisson regression but without Dew.point.temperature this time. Here's the result:
 
 ```{r}
 model1 <- glm(Rented.Bike.Count~.-Dew.point.temperature, family = "poisson", data=data)
 summary(model1)
 vif(model1)
 ```
-We can see that by eliminating Dew.point.temperature..C. we see a significant improvement in the VIF results. The resulting model shows positive coefficient for Hour7 to Hour9, and for Hour15 to Hour23 with Hour24 as the benchmark factor. Temperature.C., Solar.Radiation..MJ.m2., and Holiday also exhibit a positive coefficient, meaning that the model will predict a higher value for the dependent variable as the covariate value increases, with a small p-value indicating high significance. All the other variables have a negative coefficients meaning that the model will predict a lower value for the dependent variable as the covariate value increases.
+We can see that by eliminating Dew.point.temperature we see a significant improvement in the VIF results. The resulting model shows positive coefficient for Hour7 to Hour9, and for Hour15 to Hour23 with Hour24 as the benchmark factor. Temperature, Solar.Radiation, and Holiday also exhibit a positive coefficient, meaning that the model will predict a higher value for the dependent variable as the covariate value increases, with a small p-value indicating high significance. All the other variables have a negative coefficients meaning that the model will predict a lower value for the dependent variable as the covariate value increases.
 
 ## Diagnostics
 Now we will plot the diagnostic plots for model 1:
@@ -410,7 +415,7 @@ anova(model, model1, test = "Chisq")
 
 ```{r}
 future_data <- data.frame(
-  # Date = as.Date(c("2024-07-01", "2024-07-02", "2024-07-03")),  # Future dates
+  tmstmp = as.Date(c("2024-07-01", "2024-07-02", "2024-07-03")),  # Future dates
   Temperature = c(25, 26, 27),  # Example future temperatures
   Humidity = c(60, 65, 70),     # Example future humidity levels
   Wind.speed = c(2, 3, 2.5),     # Example future wind speeds
