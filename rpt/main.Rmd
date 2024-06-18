@@ -397,33 +397,6 @@ print(paste("Variance:", var_rented_bike_count))
 anova(model, model1, test = "Chisq")
 ```
 
-## Prediction
-
-```{r}
-future_data <- data.frame(
-  tmstmp = as.Date(c("2024-07-01", "2024-07-02", "2024-07-03")),  # Future dates
-  Temperature = c(25, 26, 27),  # Example future temperatures
-  Humidity = c(60, 65, 70),     # Example future humidity levels
-  Wind.speed = c(2, 3, 2.5),     # Example future wind speeds
-  Hour = factor(1),
-  Visibility = 1000,
-  Dew.point.temperature = 10,
-  Solar.Radiation = 0.1,
-  Rainfall = 0,
-  Snowfall = 0,
-  Seasons = "Summer",
-  Holiday = "No Holiday"
-
-
-  # Add other predictors as necessary
-)
-future_data$Predicted.Bike.Count <- predict(model1, newdata = future_data, type = "response")
-predict(model1, newdata = future_data, type = "response")
-
-# View the predictions
-print(future_data)
-```
-
 # Conclusions
 
 This project undertook a statistical examination of the intricate relationship between the number of rented bikes in a particular hour, and the weather present at the same time. The analysis incorporated a comprehensive dataset encompassing various meteorological factors, alongside "Rented Bike count".
