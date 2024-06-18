@@ -166,7 +166,7 @@ a correlation matrix.
 
 ```{r}
 library(corrplot, warn.conflicts = FALSE); corrplot(
-	cor(data[2:11])
+	cor(data[c(2, 4:11)])
 	,method = "number"
 	,diag = FALSE
 	,tl.cex = 0.8
@@ -331,10 +331,7 @@ consideration is only 1 year, and there wasn't a significant increase of availab
 ## Poisson model
 The first model we created was a poisson regression where Rented.Bike.Count is the dependent variable, and all the other columns in the pre-processed dataset are the indepent variables.
 ```{r}
-data<-data[data$Functioning.Day=="Yes",]
 data<-data[,c(-1, -14)]
-data$Holiday <- as.factor(data$Holiday)
-data$Seasons <- as.factor(data$Seasons)
 data$Hour<- as.factor(data$Hour)
 
 model <- glm(Rented.Bike.Count ~., family = poisson(link = "log"), data=data)
@@ -349,7 +346,7 @@ model1 <- glm(Rented.Bike.Count~.-Dew.point.temperature, family = "poisson", dat
 summary(model1)
 vif(model1)
 ```
-We can see that by eliminating Dew.point.temperature we see a significant improvement in the VIF results. The resulting model shows positive coefficient for Hour7 to Hour9, and for Hour15 to Hour23 with Hour24 as the benchmark factor. Temperature, Solar.Radiation, and Holiday also exhibit a positive coefficient, meaning that the model will predict a higher value for the dependent variable as the covariate value increases, with a small p-value indicating high significance. All the other variables have a negative coefficients meaning that the model will predict a lower value for the dependent variable as the covariate value increases.
+We can see that by eliminating Dew.point.temperature we see a significant improvement in the VIF results. The resulting model shows positive coefficient for Hour7 to Hour9, and for Hour15 to Hour23 with Hour24 as the benchmark factor. Temperature, Solar.Radiation, and Holiday also exhibit a positive coefficient, meaning that the model will predict a higher value for the dependent variable as the covariate value increases, with a small p-value indicating high significance. All the other variables have a negative coefficients meaning that the model will predict a lower value for the dependent variable as the covariate value increases. This values confirm what we saw in the exploratory data analysis.
 
 ## Diagnostics
 Now we will plot the diagnostic plots for model 1:
