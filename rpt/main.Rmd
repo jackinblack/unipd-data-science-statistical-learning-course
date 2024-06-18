@@ -127,7 +127,7 @@ for (i in 1:length(data$Humidity)){
 }
 ```
 
-We would like to treat the Hour predictor as a categorical variable in order to be able to capture non linear relationships with the target in our model as we will see in the next chapter.
+We would like to treat the Hour predictor as a categorical variable in order to be able to capture non linear relationships with the target in our modelling as we will see in the next chapter.
 We will save this variable *as is* for future analysis.
 ```{r}
 Hour <- data$Hour;
@@ -150,9 +150,11 @@ In the next paragraphs we push to achieve the following:
 By plotting the distribution histograms we hope to identify the shape, central tendency, and spread of data, revealing patterns, outliers, and skewness of our predictors.
 
 ```{r}
-hist.variables = subset(data, select = c(Rented.Bike.Count, Temperature, Humidity, Wind.speed
-	,Visibility, Dew.point.temperature, Solar.Radiation, Rainfall, Snowfall));
-hist.variables$Hour <- Hour;
+hist.variables = cbind(
+	subset(data, select = c(Rented.Bike.Count, Temperature, Humidity, Wind.speed
+		,Visibility, Dew.point.temperature, Solar.Radiation, Rainfall, Snowfall)
+	)
+	,Hour = Hour);
 par(mfrow = c(3, 4));
 for (var in names(hist.variables)) {
 	hist(hist.variables[[var]], right = FALSE, probability = TRUE
