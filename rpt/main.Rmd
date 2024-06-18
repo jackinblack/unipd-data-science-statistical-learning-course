@@ -100,15 +100,16 @@ data$Holiday 		<- as.factor( data$Holiday );
 
 Transforming everything into factors servers the following purpose
 
-We also need to transform our predictors Date and Hour into a date format correctly interpretable by R.
+We also need to transform our predictors Date and Hour into a date format correctly interpretable by R. We arbitrarily decide to remove the Date feature as our analysis will be focused on the predictive power of the weather related features and in addition the dataset only covers one solar year and the date would not be able to have a desired impact on prediction.
+For this dataset, it can be shown that there is a small but positive correlation between the date and the target but this correlation is mostly attributable to weather differences.
 
 ```{r}
-data$tmstmp <- strptime(
+timestamp <- strptime(
 	paste( data$Date, data$Hour )
 	,format="%d/%m/%Y %H"
 );
-data$Date <- as.Date( data$Date, format="%d/%m/%Y" );
-data$tmstmp <- as.Date( data$tmstmp );
+timestamp <- as.Date( timestamp );
+data <- subset(data, select = -c(Date));
 ```
 
 As described in the above paragraph, we proceed by replacing the missing humidity values with the median of the remaining correct values.
@@ -142,7 +143,7 @@ By plotting the distribution histograms we hope to identify the shape, central t
 
 ```{r}
 par(mfrow = c(3, 4));
-for (i in 2:11) {
+for (i in 1:10) {
 	hist(data[[i]], right = FALSE, probability = TRUE
 		,main = paste("Histogram of", names(data)[i])
 		,xlab = names(data)[i], col = "skyblue", border = "white", cex.main = 0.8);
@@ -168,7 +169,7 @@ a correlation matrix.
 
 ```{r}
 library(corrplot, warn.conflicts = FALSE); corrplot(
-	cor(data[c(2, 4:11)])
+	cor(data[c(1:10)])
 	,method = "number"
 	,diag = FALSE
 	,tl.cex = 0.8
@@ -192,7 +193,7 @@ by using the treshold method.
 library(igraph, warn.conflicts = FALSE); library(gRbase, warn.conflicts = FALSE);
 
 threshold 				<- 1/5;
-covariance.matrix 		<- var( data[2:11], use="pairwise.complete.obs" );
+covariance.matrix 		<- var( data[1:10], use="pairwise.complete.obs" );
 concentration.matrix 	<- -cov2cor( solve(covariance.matrix) );
 adjacency.matrix 		<- abs( concentration.matrix ) > threshold;
 diag(adjacency.matrix) 	<- 0; # remove self dependencies
@@ -214,13 +215,13 @@ to see if we can notice any trends. With the help of a legend we split the datas
 ```{r}
 palette = c("Spring" = "#78C850", "Summer" = "#FFB14E"
 	,"Autumn" = "#DC143C", "Winter" = "#4B8BBE");
-plot(data$tmstmp, data$Rented.Bike.Count
+plot(timestamp, data$Rented.Bike.Count
 	,col = palette[data$Season], pch = 16
 	,cex = 0.5, main = "Bike shares vs. Date"
 	,xlab = "Date",ylab = "Rented Bike count" );
 legend("topleft", legend = names(palette), col = palette
 	,pch = 16, title = "Season", cex = 0.7);
-lines(loess.smooth(data$tmstmp, data$Rented.Bike.Count), lty = 1, col = 1);
+lines(loess.smooth(timestamp, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 Here we notice how bike share demand peaks in summer and declines in winter implying that the bike
@@ -228,13 +229,13 @@ shares are high when the weather is warm.
 
 ```{r}
 palette <- colorRampPalette(c("darkblue", "skyblue", "orange", "red", "darkblue"))(24);
-plot(data$tmstmp, data$Rented.Bike.Count
+plot(timestamp, data$Rented.Bike.Count
 	,col = palette[data$Hour], pch = ifelse(data$Holiday == "No Holiday", 16, 3)
 	,cex = 0.5, main = "Bike shares vs. Date"
 	,xlab = "Date", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = palette
 	,pch = 16, title = "Hour", cex = 0.7);
-lines(loess.smooth(data$tmstmp, data$Rented.Bike.Count), lty = 1, col = 1);
+lines(loess.smooth(timestamp, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 This plot allows us to notice that although the target is indeed influenced by Hour, the influence is not as
@@ -333,7 +334,7 @@ consideration is only 1 year, and there wasn't a significant increase of availab
 ## Poisson model
 The first model we created was a poisson regression where Rented.Bike.Count is the dependent variable, and all the other columns in the pre-processed dataset are the indepent variables.
 ```{r}
-data<-data[,c(-1, -14)]
+data<-data[,c(-14)]
 data$Hour<- as.factor(data$Hour)
 
 model <- glm(Rented.Bike.Count ~., family = poisson(link = "log"), data=data)
