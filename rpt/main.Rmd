@@ -21,7 +21,7 @@ To explore this relationship we will implement a poisson regression, a widely us
 As major cities worldwide are moving towards smart mobility we hope to gain insight into how open-vehicle sharing systems could be optimized for efficiency
 through out the year by finding relationships between number of shares and weather.
 
-# Dataset insight
+# Data overview and preparation
 
 We proceed our in depth look at the dataset by importing and looking at the summary. The format of the dataset is csv, to read it
 we use the built-in function read.csv of R. We decide to use a naming convention for our predictors in order to avoid misinterpetations of special characters present in the dataset file.
