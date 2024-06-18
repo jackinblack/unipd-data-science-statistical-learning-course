@@ -81,6 +81,10 @@ Notice, also in the summary, how our Humidity predictor sometimes is reported as
 in a real world scenario we assume that these values are attributed to a malfunctioning of the devices responsible for this predictor.
 We will adopt an interpolating technique to address this issue in the following paragraph.
 
+```{r}
+which(data$Humidity == 0);
+```
+
 ## Data preprocessing
 
 As our first step, we will select for our analysis only those hours where the system is functioning, since on the hours where it doesn't we are going to observe 0 counted rented bikes independently from the weather.
@@ -110,11 +114,17 @@ timestamp <- as.Date( timestamp );
 data <- subset(data, select = -c(Date));
 ```
 
-As described in the above paragraph, we proceed by replacing the missing humidity values with the median of the remaining correct values.
-
+As described in the above paragraph, we proceed by replacing the incorrect humidity values with the average of the last and next strictly positive values.
+For this purpose we use an *ad hoc* for loop that allows us to obtain the correct substitutions for our particular case.
 ```{r}
-median.humidity <- median(data$Humidity[data$Humidity != 0], na.rm = TRUE);
-data$Humidity[data$Humidity == 0] <- median.humidity;
+first = -1; first.idx = -1;
+for (i in 1:length(data$Humidity)){
+	if (data$Humidity[i] <= 0 & first <= 0){ first = data$Humidity[i - 1]; first.idx = i - 1; }
+	if (data$Humidity[i] > 0 & first > 0 ){
+		data$Humidity[(first.idx + 1) : (i - 1)] = as.integer((first + data$Humidity[i]) / 2);
+		first = -1; first.idx = -1;
+	}
+}
 ```
 
 We would like to treat the Hour predictor as a categorical variable in order to be able to capture non linear relationships with the target in our model as we will see in the next chapter.
@@ -170,7 +180,7 @@ a correlation matrix.
 
 ```{r}
 library(corrplot, warn.conflicts = FALSE); corrplot(
-	cor(cbind(data[c(1, 3:10)], D = Hour))
+	cor(cbind(data[c(1, 3:10)], Hour = Hour))
 	,method = "number"
 	,diag = FALSE
 	,tl.cex = 0.8
