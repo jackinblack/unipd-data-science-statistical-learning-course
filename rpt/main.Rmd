@@ -98,8 +98,6 @@ data$Seasons 		<- as.factor( data$Seasons );
 data$Holiday 		<- as.factor( data$Holiday );
 ```
 
-Transforming everything into factors servers the following purpose
-
 We also need to transform our predictors Date and Hour into a date format correctly interpretable by R. We arbitrarily decide to remove the Date feature as our analysis will be focused on the predictive power of the weather related features and in addition the dataset only covers one solar year and the date would not be able to have a desired impact on prediction.
 For this dataset, it can be shown that there is a small but positive correlation between the date and the target but this correlation is mostly attributable to weather differences.
 
@@ -142,8 +140,8 @@ In the next paragraphs we push to achieve the following:
 By plotting the distribution histograms we hope to identify the shape, central tendency, and spread of data, revealing patterns, outliers, and skewness of our predictors.
 
 ```{r}
-hist.variables = subset(data, select = c(Rented.Bike.Count, Temperature, Humidity, Wind.speed, Visibility
-	,Dew.point.temperature, Solar.Radiation, Rainfall, Snowfall));
+hist.variables = subset(data, select = c(Rented.Bike.Count, Temperature, Humidity, Wind.speed
+	,Visibility, Dew.point.temperature, Solar.Radiation, Rainfall, Snowfall));
 hist.variables$Hour <- Hour;
 par(mfrow = c(3, 4));
 for (var in names(hist.variables)) {
