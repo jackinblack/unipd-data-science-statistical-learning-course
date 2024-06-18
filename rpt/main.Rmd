@@ -83,10 +83,12 @@ We will adopt an interpolating technique to address this issue in the following 
 
 ## Data preprocessing
 
-As our first step, we will select for our analysis only those hours where the app is functioning, since on the hours where it doesn't we are going to observe 0 rented bikes independently from the weather.
+As our first step, we will select for our analysis only those hours where the system is functioning, since on the hours where it doesn't we are going to observe 0 counted rented bikes independently from the weather.
+In such cases, this feature does not provide additional predictive power to the model and/or could cause overfitting. We also proceed by removing the feature entirely because we are only going to be using one of it's two categories.
 
 ```{r}
-data <- data[data$Functioning.Day=="Yes",]
+data <- data[data$Functioning.Day=="Yes",];
+data <- subset(data, select = -c(Functioning.Day));
 ```
 
 Our dataset contains the following categorical variables: Seasons, Holiday, and Functioning Day. As seen before R treats them as character variables but we need to transform them into factors for R to interpret them correctly. Since as we have seen before we selected only the observation where Functioning Day has a "Yes" value, this procedure is only done for Seasons and Holiday.
