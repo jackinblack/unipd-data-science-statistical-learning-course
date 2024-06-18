@@ -83,12 +83,17 @@ We will adopt an interpolating technique to address this issue in the following 
 
 ## Data preprocessing
 
-Our dataset contains the following categorical variables: Seasons, Holiday, Functional Day. As seen before R treats them as character variables but we need to transform them into factors for R to interpret them correctly.
+As our first step, we will select for our analysis only those hours where the app is functioning, since on the hours where it doesn't we are going to observe 0 rented bikes independently from the weather.
+
+```{r}
+data <- data[data$Functioning.Day=="Yes",]
+```
+
+Our dataset contains the following categorical variables: Seasons, Holiday, and Functioning Day. As seen before R treats them as character variables but we need to transform them into factors for R to interpret them correctly. Since as we have seen before we selected only the observation where Functioning Day has a "Yes" value, this procedure is only done for Seasons and Holiday.
 
 ```{r}
 data$Seasons 		<- as.factor( data$Seasons );
 data$Holiday 		<- as.factor( data$Holiday );
-data$Functioning.Day <- as.factor( data$Functioning.Day );
 ```
 
 Transforming everything into factors servers the following purpose
@@ -117,22 +122,6 @@ data$Humidity[data$Humidity == 0] <- median.humidity;
 # this breaks the for loop next
 
 ```
-
-This chunk needs explanation
-
-```{r}
-data <- data[data$Functioning.Day=="Yes",]
-
-# data <- subset(data, select = -c("Functioning.Day"))
-# data<-data[,c(-1, -14)]
-# data<-data[,c(-1, -14)]
-
-summary(data)
-```
-
-This chunk needs commenting...
-
-
 
 
 # Exploratory Data analysis
