@@ -119,11 +119,11 @@ median.humidity <- median(data$Humidity[data$Humidity != 0], na.rm = TRUE);
 data$Humidity[data$Humidity == 0] <- median.humidity;
 ```
 
+We would like to treat the Hour predictor as a categorical variable in order to be able to capture non linear relationships with the target in our model as we will see in the next chapter.
+We will save this variable *as is* for future analysis.
 ```{r}
-# data$Hour<- as.factor(data$Hour);
-
-# this breaks the for loop next
-
+Hour <- data$Hour;
+data$Hour <- as.factor(data$Hour);
 ```
 
 
@@ -142,16 +142,19 @@ In the next paragraphs we push to achieve the following:
 By plotting the distribution histograms we hope to identify the shape, central tendency, and spread of data, revealing patterns, outliers, and skewness of our predictors.
 
 ```{r}
+hist.variables = subset(data, select = c(Rented.Bike.Count, Temperature, Humidity, Wind.speed, Visibility
+	,Dew.point.temperature, Solar.Radiation, Rainfall, Snowfall));
+hist.variables$Hour <- Hour;
 par(mfrow = c(3, 4));
-for (i in 1:10) {
-	hist(data[[i]], right = FALSE, probability = TRUE
-		,main = paste("Histogram of", names(data)[i])
-		,xlab = names(data)[i], col = "skyblue", border = "white", cex.main = 0.8);
-	lines(density(data[[i]]), col = "darkblue", lwd = 2);
-	var.mean <- mean(data[[i]], na.rm = TRUE);
-	var.median <- median(data[[i]], na.rm = TRUE);
-	unique.out <- unique(data[[i]]);
-	var.mode <- unique.out[which.max(tabulate(match(data[[i]], unique.out)))];
+for (var in names(hist.variables)) {
+	hist(hist.variables[[var]], right = FALSE, probability = TRUE
+		,main = paste("Histogram of", var)
+		,xlab = var, col = "skyblue", border = "white", cex.main = 0.8);
+	lines(density(hist.variables[[var]]), col = "darkblue", lwd = 2);
+	var.mean <- mean(hist.variables[[var]], na.rm = TRUE);
+	var.median <- median(hist.variables[[var]], na.rm = TRUE);
+	unique.out <- unique(hist.variables[[var]]);
+	var.mode <- unique.out[which.max(tabulate(match(hist.variables[[var]], unique.out)))];
 
 	abline(v = var.mean, col = "#FF6347", lty = 1); # red
 	abline(v = var.median, col = "#4682B4", lty = 1); # blue
@@ -169,7 +172,7 @@ a correlation matrix.
 
 ```{r}
 library(corrplot, warn.conflicts = FALSE); corrplot(
-	cor(data[c(1:10)])
+	cor(cbind(data[c(1, 3:10)], D = Hour))
 	,method = "number"
 	,diag = FALSE
 	,tl.cex = 0.8
@@ -230,7 +233,7 @@ shares are high when the weather is warm.
 ```{r}
 palette <- colorRampPalette(c("darkblue", "skyblue", "orange", "red", "darkblue"))(24);
 plot(timestamp, data$Rented.Bike.Count
-	,col = palette[data$Hour], pch = ifelse(data$Holiday == "No Holiday", 16, 3)
+	,col = palette[Hour], pch = ifelse(data$Holiday == "No Holiday", 16, 3)
 	,cex = 0.5, main = "Bike shares vs. Date"
 	,xlab = "Date", ylab = "Rented Bike count");
 legend("topleft", ncol = 3, legend = seq(1,24), col = palette
@@ -261,8 +264,8 @@ we cannot conclude that this is true as we can clearly see that we have peaks ev
 
 ```{r}
 palette <- colorRampPalette( c("#1D4E89", "#D0E1F9", "#1D4E89") )(24);
-colors <- palette[data$Hour + 1]
-plot(data$Hour, data$Rented.Bike.Count
+colors <- palette[Hour + 1]
+plot(Hour, data$Rented.Bike.Count
 	,col = colors
 	,xlab = "Hour", ylab = "Rented Bike count"
 	,main = "Bike shares vs. Hour"
@@ -334,9 +337,6 @@ consideration is only 1 year, and there wasn't a significant increase of availab
 ## Poisson model
 The first model we created was a poisson regression where Rented.Bike.Count is the dependent variable, and all the other columns in the pre-processed dataset are the indepent variables.
 ```{r}
-data<-data[,c(-14)]
-data$Hour<- as.factor(data$Hour)
-
 model <- glm(Rented.Bike.Count ~., family = poisson(link = "log"), data=data)
 summary(model)
 library(car)
