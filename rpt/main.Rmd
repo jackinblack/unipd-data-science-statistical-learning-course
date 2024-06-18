@@ -1,6 +1,6 @@
 ---
 title: "Application of statistical analysis and modelling to Seoul Bike Sharing Demand dataset"
-author: "Vasile Bezer (2124011), Second Student (12345678)"
+author: "Vasile Bezer (2124011), Davide Nieto (2126359)"
 font: 10pt
 output:
   pdf_document:
