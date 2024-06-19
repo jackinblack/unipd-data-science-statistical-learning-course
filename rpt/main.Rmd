@@ -151,8 +151,8 @@ By plotting the distribution histograms we hope to identify the shape, central t
 
 ```{r}
 hist.variables = cbind(
-	subset(data, select = c(Rented.Bike.Count, Temperature, Humidity, Wind.speed
-		,Visibility, Dew.point.temperature, Solar.Radiation, Rainfall, Snowfall)
+	subset(data, select = c(Rented.Bike.Count, Temperature, Dew.point.temperature, Solar.Radiation
+		,Humidity, Visibility, Snowfall, Wind.speed, Rainfall)
 	)
 	,Hour = Hour);
 par(mfrow = c(3, 4));
@@ -173,12 +173,14 @@ for (var in names(hist.variables)) {
 # par(mfrow = c(1, 1));
 ```
 
-The target follows a poisson distribution...
+One assumption for the Poisson model is that the response variables should follow a Poisson distribution.
+As seen from the plots the distribution of our target follows an almost perfect Poisson with a small rate parameter ${\mu}$.
+We can also observe that Temperature and Dew.point.temperature follow a bimodal distribution indicating the presence of two different subpopulations or groups 
+within the data but this is expected since autumn and Spring have very similar temperatures and summer and Winter are opposites as we will see in the following paragraphs.
 
 ## Correlation matrix
 
-In order to find linear relationships between our continuous predictors our first step is to build
-a correlation matrix.
+In order to find linear relationships between our continuous predictors our first step is to build a correlation matrix.
 
 ```{r}
 library(corrplot, warn.conflicts = FALSE); corrplot(
@@ -222,7 +224,7 @@ these variables from our analysis.
 
 ## Scatter plots
 
-We now try plotting our target, in our case Rented Bike count, against the new Date variable we created
+We now try plotting our target, in our case Rented Bike count, against the new timestamp variable we created
 to see if we can notice any trends. With the help of a legend we split the dataset into all 4 seasons.
 
 ```{r}
@@ -238,7 +240,9 @@ lines(loess.smooth(timestamp, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 Here we notice how bike share demand peaks in summer and declines in winter implying that the bike
-shares are high when the weather is warm.
+shares are high when the weather is warm. Although we are looking for a relationship between time and shares we 
+observe that this relationship exists in function of weather temperature. Since no long term relationship is visible 
+between time and bike shares we don't expect to draw any knowledge from using time in our model.
 
 ```{r}
 palette <- colorRampPalette(c("darkblue", "skyblue", "orange", "red", "darkblue"))(24);
@@ -253,6 +257,8 @@ lines(loess.smooth(timestamp, data$Rented.Bike.Count), lty = 1, col = 1);
 
 This plot allows us to notice that although the target is indeed influenced by Hour, the influence is not as
 strong as for Temperature conforming with the result obtained in the correlation matrix.
+Although the correlation between target and Hour is relatively significant, by inspecting this last scatter plot
+we cannot conclude that this is true as we can clearly see that we have peaks even at late hours.
 
 We now proceed to plot our target against Temperature to see if our assumptions have any foundation.
 
@@ -269,8 +275,7 @@ lines(loess.smooth(data$Temperature, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 This plot shows us how bike shares are indeed influenced by temperature in a mostly linear manner.
-Although the correlation between target and Hour is relatively significant, by inspecting the last two scatter plots
-we cannot conclude that this is true as we can clearly see that we have peaks even at late hours.
+The legend helps to further analyze seasonal patterns: winter and summer are positioned on opposite ends of the temperature spectrum, with winter assiciated to lower temperatures and bike shares and summer associated to higher temperatures and increased bike shares. Spring and autumn are clustered in the middle range of temperatures associated to moderate bike shares. This seasonal variation suggests that temperature and season significantly influence target behavior.
 
 ```{r}
 palette <- colorRampPalette( c("#1D4E89", "#D0E1F9", "#1D4E89") )(24);
@@ -282,7 +287,7 @@ plot(Hour, data$Rented.Bike.Count
 	,pch = 16, cex = 0.7);
 ```
 
-In this plot we can notice how the correlation between the target and Hour is explained by shares peak during rush hour
+In this plot we can notice how the correlation between the target and Hour is explained by shares peak during rush hour as we have seen before this indicates a conditional dependency.
 
 ```{r}
 palette = c("Spring" = "#78C850", "Summer" = "#FFB14E"
@@ -295,6 +300,7 @@ legend("topleft", legend = names(palette), col = palette
 	,pch = 16, title = "Season", cex = 0.7);
 lines(loess.smooth(data$Humidity, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
+Above we can see that humidity displays a uniform behavior across all seasons as we have highs and lows for all four seasons. However, it is notable that the number of bike shares tend to decrease as humidity levels rise, indicating a negative trend between high humidity and bike rental activity.
 
 # Modelling
 
