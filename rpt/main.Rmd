@@ -305,8 +305,6 @@ Above we can see that humidity displays a uniform behavior across all seasons as
 
 # Modelling
 
-## Variables of interest
-
 ## Poisson distribution and Poisson regression model
 
 If the discrete random variable ${Y}$ has Poisson distribution with intensity or rate parameter ${\mu}$, ${\mu}$ > 0, then ${Y}$ has the density:
