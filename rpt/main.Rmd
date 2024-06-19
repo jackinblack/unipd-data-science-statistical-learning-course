@@ -1,5 +1,5 @@
 ---
-title: "Application of statistical analysis and modelling to Seoul Bike Sharing Demand dataset"
+title: "Application of statistical analysis and Poisson modelling to Seoul Bike Sharing Demand dataset"
 author: "Vasile Bezer (2124011), Davide Nieto (2126359)"
 font: 10pt
 output:
@@ -174,7 +174,7 @@ for (var in names(hist.variables)) {
 ```
 
 One assumption for the Poisson model is that the response variables should follow a Poisson distribution.
-As seen from the plots the distribution of our target follows an almost perfect Poisson with a small rate parameter ${\mu}$.
+As seen from the plots the distribution of our target follows a Poisson distribution characterized by a small rate parameter ${\mu}$ that shows signs of overdispersion.
 We can also observe that Temperature and Dew.point.temperature follow a bimodal distribution indicating the presence of two different subpopulations or groups 
 within the data but this is expected since autumn and Spring have very similar temperatures and summer and Winter are opposites as we will see in the following paragraphs.
 
@@ -318,7 +318,7 @@ The Poisson regression is a generalized linear model (GLM) mainly used for count
 essential components:
 
 1. The data ${y = \{y_1, y_2, \ldots, y_n\}}$ are assumed to be independently distributed with means:
-   $${\mu = \{\mu_1, \mu_2, \ldots, \mu_n\}}$$
+   $${\mu = \{\mu_1, \mu_2, \ldots, \mu_n\},\ with\ \mu_i > 0}$$ 
 
 2. The (systematic) linear model predicts:
    ${Y = \{Y_1, Y_2, \ldots, Y_n\}}$,
@@ -379,15 +379,6 @@ This is a restrictive property and often fails to hold in practice as there is o
 in the data. When the dependent variable is over-dispersed, e.g. the variance of average daily
 ridership data is greater than its mean, the Poisson regression model cannot be employed.
 
-```{r}
-par(mfrow = c(1, 3))
-plot(predict(model1, type = "link"), rstandard(model1))
-abline(h = 0)
-plot(predict(model1, type = "response"), rstandard(model1))
-abline(h = 0)
-qqnorm(rstandard(model1))
-qqline(rstandard(model1))
-```
 
 ## Model comparisons
 
