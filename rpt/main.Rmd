@@ -354,7 +354,7 @@ consideration is only 1 year, and there wasn't a significant increase of availab
 ## Poisson model
 The first model we created was a poisson regression where Rented.Bike.Count is the dependent variable, and all the other columns in the pre-processed dataset are the indepent variables.
 ```{r}
-model <- glm(Rented.Bike.Count ~., family = poisson(link = "log"), data=data)
+model <- glm(Rented.Bike.Count ~., family = "poisson", data=data)
 summary(model)
 library(car)
 vif(model)
@@ -379,7 +379,7 @@ The results from these graphs show that the model is having some issues fitting 
 A limitation of the Poisson model is its implicit assumption that the variance of ${y_i}$ equals its mean.
 This is a restrictive property and often fails to hold in practice as there is over dispersion
 in the data. When the dependent variable is over-dispersed, e.g. the variance of average daily
-ridership data is greater than its mean, the Poisson regression model cannot be employed
+ridership data is greater than its mean, the Poisson regression model cannot be employed.
 
 ```{r}
 par(mfrow = c(1, 3))
@@ -391,31 +391,15 @@ qqnorm(rstandard(model1))
 qqline(rstandard(model1))
 ```
 
-```{r}
-deviance(model)
-deviance(model1)
-
-model.residual.deviance <- model$deviance
-model1.residual.deviance <- model1$deviance
-
-model
-model1
-```
-
-```{r}
-mean_rented_bike_count <- mean(data$Rented.Bike.Count)
-var_rented_bike_count <- var(data$Rented.Bike.Count)
-
-# Print the mean and variance
-print(paste("Mean:", mean_rented_bike_count))
-print(paste("Variance:", var_rented_bike_count))
-```
-
 ## Model comparisons
 
+To test wheter our reduced model is more adequate to describe the data we employ a Chi-square test.
 ```{r}
-anova(model, model1, test = "Chisq")
+anova(model, model1, test = "Chisq");
 ```
+
+The deviance for the full model is lower than the deviance for the reduce model. Hence, we conclude that the full model fits the data better. The extremely significant p-value (< 2.2e-16) further supports that the inclusion of Dew.point.temperature provides a mild improvement to the model.
+The difference in deviance between the two models is -10633, which indicates that the full model has a lower deviance than the reduced model. In the context of the deviance measure, a lower deviance suggests a better fit to the data.
 
 # Conclusions
 
