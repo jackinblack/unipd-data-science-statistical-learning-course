@@ -135,14 +135,14 @@ data$Hour <- as.factor(data$Hour);
 ```
 
 
-# Exploratory Data analysis
+# Exploratory data analysis
 
-Exploratory Data Analysis (EDA) is an important step in understanding data through summary statistics and visualizations. Its main purpose is to get a clear picture of the data before modelling. EDA helps identify patterns and trends, showing how data can be effectively used. It also sparks new research ideas by revealing unexpected relationships. Additionally, EDA helps find errors
-and inconsistencies. It checks the basic assumptions needed for further analysis by looking at the distribution and variety of data.
+The main purpose of Exploratory data analysis (EDA) is to get a clear picture of the data before modelling through plots and summaries by identifying patterns and trends. It also allows to reveal unexpected relationships. Also, EDA helps find errors
+and inconsistencies in the data.
 
 In the next paragraphs we push to achieve the following:
 
-- learn variable distributions and suitability and for the poisson regression model
+- learn variable distributions and suitability for the poisson regression model
 - learn dependencies and patterns between variables
 
 ## Distributions
@@ -287,7 +287,8 @@ plot(Hour, data$Rented.Bike.Count
 	,pch = 16, cex = 0.7);
 ```
 
-In this plot we can notice how the correlation between the target and Hour is explained by shares peak during rush hour as we have seen before this indicates a conditional dependency.
+In this plot we can notice how the correlation between the target and Hour is explained by shares peak during rush hour as we have seen before this shows a conditional dependency.
+Although overall the number of bike rentals varies with the seasons, one key feature remains consistent: peak demand times consistently occur at 8AM and 6PM.
 
 ```{r}
 palette = c("Spring" = "#78C850", "Summer" = "#FFB14E"
