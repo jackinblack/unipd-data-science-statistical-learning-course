@@ -391,7 +391,7 @@ qqline(rstandard(model1))
 
 ## Model comparisons
 
-To test wheter our reduced model is more adequate to describe the data we employ a Chi-square test.
+To test whether our reduced model is more adequate to describe the data we employ a Chi-square test.
 ```{r}
 anova(model, model1, test = "Chisq");
 ```
