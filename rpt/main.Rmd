@@ -215,9 +215,9 @@ legend("topleft", legend = names(palette), col = palette
 lines(loess.smooth(timestamp, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
-Here we notice how bike share demand peaks in summer and declines in winter implying that the bike
+Here we notice how bike share demand peaks in summer and declines in winter, this might imply that the bike
 shares are high when the weather is warm. Although we are looking for a relationship between time and shares we 
-observe that this relationship exists in function of weather temperature. Since no long term relationship is visible 
+observe that this relationship exists in function of weather temperature. Since no long-term relationship is visible 
 between time and bike shares we don't expect to draw any knowledge from using time in our model.
 
 ```{r}
