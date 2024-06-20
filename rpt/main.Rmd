@@ -195,7 +195,7 @@ library(corrplot, warn.conflicts = FALSE); corrplot(
 The most important numerical predictors, in linear terms, for our target seem to be Temperature, Humidity and Dew point temperature. We can also
 notice how Temperature and Dew point temperature are highly correlated which signifies that there might be
 a confounding effect taking place.
-In the next paragraph, our objective is to investigate the most siginficant correlations with our target.
+In the next paragraph, our objective is to investigate the most significant correlations with our target.
 
 
 ## Scatter plots
