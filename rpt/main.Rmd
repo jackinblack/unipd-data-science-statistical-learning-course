@@ -261,7 +261,7 @@ plot(Hour, data$Rented.Bike.Count
 	,pch = 16, cex = 0.7);
 ```
 
-In this plot we can notice how the correlation between the target and Hour is explained by shares peak during rush hour this shows a conditional dependency.
+In this plot we can notice how the relationship between the target and Hour is explained by peaks of shares during rush hour, this shows a conditional dependency.
 Although overall the number of bike rentals varies with the seasons, one key feature remains consistent: peak demand times consistently occur at 8AM and 6PM.
 
 ```{r}
