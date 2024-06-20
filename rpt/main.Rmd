@@ -102,8 +102,7 @@ data$Seasons 		<- as.factor( data$Seasons );
 data$Holiday 		<- as.factor( data$Holiday );
 ```
 
-We also need to transform our predictors Date and Hour into a date format correctly interpretable by R. We arbitrarily decide to remove the Date feature as our analysis will be focused on the predictive power of the weather related features and in addition the dataset only covers one solar year and the date would not be able to have a desired impact on prediction.
-For this dataset, it can be shown that there is a small but positive correlation between the date and the target but this correlation is mostly attributable to weather differences.
+We also need to transform our predictors Date and Hour into a date format correctly interpretable by R. We decide to remove the Date feature as our analysis will be focused on the predictive power of the weather related features and in addition the dataset only covers one solar year and the date would not be able to have a desired impact on prediction.
 
 ```{r}
 timestamp <- strptime(
@@ -174,7 +173,7 @@ for (var in names(hist.variables)) {
 ```
 
 One assumption for the Poisson model is that the response variables should follow a Poisson distribution.
-As seen from the plots the distribution of our target follows a Poisson distribution characterized by a small rate parameter ${\mu}$ that shows signs of overdispersion.
+As seen from the plots the distribution of our target follows a Poisson distribution characterized by a small rate parameter ${\mu}$.
 We can also observe that Temperature and Dew.point.temperature follow a bimodal distribution indicating the presence of two different subpopulations or groups 
 within the data but this is expected since autumn and Spring have very similar temperatures and summer and Winter are opposites as we will see in the following paragraphs.
 
@@ -184,7 +183,7 @@ In order to find linear relationships between our continuous predictors our firs
 
 ```{r}
 library(corrplot, warn.conflicts = FALSE); corrplot(
-	cor(cbind(data[c(1, 3:10)], Hour = Hour))
+	cor(data[c(1, 3:10)])
 	,method = "number"
 	,diag = FALSE
 	,tl.cex = 0.8
@@ -193,34 +192,11 @@ library(corrplot, warn.conflicts = FALSE); corrplot(
 	);
 ```
 
-The most important predictors, in linear terms, for our target seem to be Temperature, Hour and Dew point temperature. We can also
+The most important numerical predictors, in linear terms, for our target seem to be Temperature, Humidity and Dew point temperature. We can also
 notice how Temperature and Dew point temperature are highly correlated which signifies that there might be
 a confounding effect taking place.
 In the next paragraph, our objective is to investigate the most siginficant correlations with our target.
 
-## Partial correlation graph
-
-Partial correlation allows us to investigate the presence of linear relationships between variables with the effect of a set of controlling random
-variables removed. This in turn allows us to capture relationships more in depth compared to the classic correlation matrix. We proceed to build this graph
-by using the treshold method.
-
-```{r}
-library(igraph, warn.conflicts = FALSE); library(gRbase, warn.conflicts = FALSE);
-
-threshold 				<- 1/5;
-covariance.matrix 		<- var( data[1:10], use="pairwise.complete.obs" );
-concentration.matrix 	<- -cov2cor( solve(covariance.matrix) );
-adjacency.matrix 		<- abs( concentration.matrix ) > threshold;
-diag(adjacency.matrix) 	<- 0; # remove self dependencies
-adjacency.graph 		<- as( adjacency.matrix, "igraph" );
-
-plot( adjacency.graph );
-```
-
-The edge between our target and Hour suggests that there is a direct conditional dependency between these two variables.
-This means that knowing the value of Hour provides information about Rented.Bike.Count beyond what is explained by the other variables in the dataset.
-On the contrary, Snowfall and Rainfall seem to be independent but this alone does not imply we should remove
-these variables from our analysis.
 
 ## Scatter plots
 
@@ -287,7 +263,7 @@ plot(Hour, data$Rented.Bike.Count
 	,pch = 16, cex = 0.7);
 ```
 
-In this plot we can notice how the correlation between the target and Hour is explained by shares peak during rush hour as we have seen before this shows a conditional dependency.
+In this plot we can notice how the correlation between the target and Hour is explained by shares peak during rush hour this shows a conditional dependency.
 Although overall the number of bike rentals varies with the seasons, one key feature remains consistent: peak demand times consistently occur at 8AM and 6PM.
 
 ```{r}
@@ -378,7 +354,18 @@ A limitation of the Poisson model is its implicit assumption that the variance o
 This is a restrictive property and often fails to hold in practice as there is over dispersion
 in the data. When the dependent variable is over-dispersed, e.g. the variance of average daily
 ridership data is greater than its mean, the Poisson regression model cannot be employed.
+```{r}
+par(mfrow = c(1, 3));
+plot(predict(model1, type = "link"), rstandard(model1));
+abline(h = 0, col = "red", lwd = 2);
+plot(predict(model1, type = "response"), rstandard(model1));
+abline(h = 0, col = "red", lwd = 2);
+qqnorm(rstandard(model1));
+qqline(rstandard(model1));
+abline(a = 0, b = 8.55, col = "red", lwd = 2);
+```
 
+We can also notice that some of the points lie at a large distance from the main cluster, these points could potentially be outliers.
 
 ## Model comparisons
 
@@ -389,6 +376,7 @@ anova(model, model1, test = "Chisq");
 
 The deviance for the full model is lower than the deviance for the reduce model. Hence, we conclude that the full model fits the data better. The extremely significant p-value (< 2.2e-16) further supports that the inclusion of Dew.point.temperature provides a mild improvement to the model.
 The difference in deviance between the two models is -10633, which indicates that the full model has a lower deviance than the reduced model. In the context of the deviance measure, a lower deviance suggests a better fit to the data.
+In the presence of high VIF for Dew.point.temperature, indicating multicollinearity, it's not possible to conclude that the reduced model can be descarded a prori.  
 
 # Conclusions
 
