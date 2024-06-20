@@ -232,9 +232,7 @@ lines(loess.smooth(timestamp, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 This plot allows us to notice that although the target is indeed influenced by Hour, the influence is not as
-strong as for Temperature conforming with the result obtained in the correlation matrix.
-Although the correlation between target and Hour is relatively significant, by inspecting this last scatter plot
-we cannot conclude that this is true as we can clearly see that we have peaks even at late hours.
+strong as the one from Temperature.
 
 We now proceed to plot our target against Temperature to see if our assumptions have any foundation.
 
