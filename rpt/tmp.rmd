@@ -1,0 +1,56 @@
+---
+title: "Application of statistical analysis and Poisson modelling to Seoul Bike Sharing Demand dataset"
+author: "Vasile Bezer (2124011), Davide Nieto (2126359)"
+font: 10pt
+output:
+  pdf_document:
+    toc: true
+    number_sections: true
+  html_document:
+    toc: false
+  word_document:
+    toc: false
+---
+
+\
+
+| Variable Name         | Description                                          | Role    | Type        | Units | Missing Values |
+| :-------------------- | :--------------------------------------------------- | :------ | :---------- | :---: | :------------- |
+| Date                  | year-month-day                                       | Feature | Date        |       | no             |
+| Rented Bike count     | Count of bikes rented at each hour                   | Feature | Integer     |       | no             |
+| Hour                  | Hour of the day                                      | Feature | Integer     |       | no             |
+| Temperature           | Temperature in Celsius                               | Feature | Continuous  |   C   | no             |
+| Humidity              | %                                                    | Feature | Integer     |   %   | no             |
+| Windspeed             | m/s                                                  | Feature | Continuous  |  m/s  | no             |
+| Visibility            | 10m                                                  | Feature | Integer     |  10m  | no             |
+| Dew point temperature | Celsius                                              | Feature | Continuous  |   C   | no             |
+| Solar radiation       | MJ/m2                                                | Feature | Continuous  | Mj/m2 | no             |
+| Rainfall              | mm                                                   | Feature | Integer     |  mm   | no             |
+| Snowfall              | cm                                                   | Feature | Integer     |  cm   | no             |
+| Seasons               | Winter, Spring, Summer, Autumn                       | Feature | Categorical |       | no             |
+| Holiday               | Holiday/No holiday                                   | Feature | Binary      |       | no             |
+| Functional Day        | NoFunc (Non-Functional Hours), Fun(Functional hours) | Feature | Binary      |       | no             |
+
+
+
+timestamp <- strptime(
+paste( data$Date, data$Hour )
+,format="%d/%m/%Y %H"
+);
+timestamp <- as.Date( timestamp );
+
+data <- subset(data, select = -c(Functioning.Day));
+data <- subset(data, select = -c(Date));
+
+data$Seasons 		<- as.factor( data$Seasons );
+data$Holiday 		<- as.factor( data$Holiday );
+data$Hour 			<- as.factor(data$Hour);
+
+first = -1; first.idx = -1;
+for (i in 1:length(data$Humidity)){
+	if (data$Humidity[i] <= 0 & first <= 0){ first = data$Humidity[i - 1]; first.idx = i - 1; }
+	if (data$Humidity[i] > 0 & first > 0 ){
+		data$Humidity[(first.idx + 1) : (i - 1)] = as.integer((first + data$Humidity[i]) / 2);
+		first = -1; first.idx = -1;
+	}
+}

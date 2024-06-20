@@ -1,0 +1,260 @@
+\documentclass{minesbeamer}
+
+\title{Application of statistical analysis and Poisson modelling to Seoul Bike Sharing Demand dataset}
+\subtitle{Statistical Learning 23-24 (mod. B)}
+\author[Vasile Bezer]{Vasile Bezer, 2124011 \and Davide Nieto, 2126359}
+\date{June 24, 2024} % or whatever the date you are presenting in is
+\institute[University of Padova]{Department of Mathematics}
+% \copyrightnotice{Published by the American Institute of Aeronautics and Astronautics, Inc., with permission}
+
+\documentclass{article}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+% Define the listings style
+\lstset{
+numbers=left, 
+numberstyle=\small, 
+numbersep=8pt, 
+frame = single, 
+language=Pascal, 
+framexleftmargin=15pt}
+
+
+\begin{document}
+
+\maketitle
+
+\cutoc
+
+\section{Project Overview}
+
+\begin{frame}{Project Overview}
+    \begin{itemize}
+        \item Explore relationships between rented bikes and meteorological conditions in urban areas
+        \item Analyze relationship between rented bikes and the time of day and factors such as seasons, holiday, and hour
+        \item Handling count data by employing Poisson model
+    \end{itemize}
+\end{frame}
+
+\section{Dataset}
+
+\begin{frame}{Overview}
+    \begin{columns}
+        \begin{column}{0.6\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[height=0.5\textheight]{img/seoul.jpg}
+                % \caption{Fancy Thing from \textit{Source et al.}}
+            \end{figure}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \begin{itemize}
+                \item The dataset contains hourly data on rented bike counts, weather conditions, and temporal information
+                \item 14 features and 8760 rows with no missing values
+                \item We recovered the dataset from UC Irvine Machine Learning Repository, a popular machine learning database
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Feature table}
+   \begin{figure}
+        \centering
+        \includegraphics[height=0.8\textheight]{img/feature-table.png}
+        % \caption{Fancy Thing from \textit{Source et al.}}
+    \end{figure}
+\end{frame}
+
+
+\begin{frame}{Data preprocessing}
+    \begin{columns}
+        \begin{column}{0.6\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[height=0.7\textheight]{img/preprocessing.png}
+                % \caption{Fancy Thing from \textit{Source et al.}}
+            \end{figure}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \begin{itemize}
+                \item Eliminated superfluous variables
+                \item Transform into factors
+                \item Interpolation of incorrect values
+                \item Creation of a timestamp variable
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\section{Exploratory data analysis}
+
+\begin{frame}{Distributions}
+    \begin{figure}
+        \centering
+        \includegraphics[height=0.8\textheight]{img/distributions.png}
+        % \caption{Fancy Thing from \textit{Source et al.}}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Correlation matrix}
+    \begin{columns}
+        \begin{column}{0.7\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[height=0.85\textheight]{img/correlation matrix.png}
+                % \caption{Fancy Thing from \textit{Source et al.}}
+            \end{figure}
+        \end{column}
+        \begin{column}{0.3\textwidth}
+            \begin{itemize}
+                \item Most correlated features are Temperature, Dew.point.temperature and Humidity
+                \item Possible confounding effect between Temperature and Dew.point.temperature
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Shares vs. Date split by Season}
+    \begin{figure}
+        \centering
+        \includegraphics[height=0.8\textheight]{img/shares-vs-date-season.png}
+        % \caption{Fancy Thing from \textit{Source et al.}}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Shares vs. Temperature split by Season}
+    \begin{figure}
+        \centering
+        \includegraphics[height=0.8\textheight]{img/shares-vs-temperature-seasons.png}
+        % \caption{Fancy Thing from \textit{Source et al.}}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Shares vs. Hour}
+    \begin{figure}
+        \centering
+        \includegraphics[height=0.8\textheight]{img/shares-vs-hour.png}
+        % \caption{Fancy Thing from \textit{Source et al.}}
+    \end{figure}
+\end{frame}
+
+
+\author[Davide Nieto]{Vasile Bezer, 2124011 \and Davide Nieto, 2126359}
+\section{Modelling}
+
+\begin{frame}{Poisson distribution}
+    \begin{columns}
+        \begin{column}{0.6\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[height=0.5\textheight]{img/poisson-distribution.jpg}
+                % \caption{Fancy Thing from \textit{Source et al.}}
+            \end{figure}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \begin{itemize}
+                \item Has the density function \(\Pr(Y = y) = \frac{e^{-\mu} \mu^y}{y!}, \quad y = 0, 1, \ldots)\)
+                \item Equidispersion property: \(E(Y) = \operatorname{Var}(Y) = \mu\)
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Poisson regression}
+    \begin{itemize}
+        \item Is a Generalized Linear Model (GLM)
+        \item Based on the poisson distribution (assumes equidispersion)
+        \item Has \(\mu = e^Y\)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Full model results}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[height=0.8\textheight]{img/full-1.png}
+                % \caption{Fancy Thing from \textit{Source et al.}}
+            \end{figure}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[height=0.7\textheight]{img/full-2.png}
+                % \caption{Fancy Thing from \textit{Source et al.}}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Reduced model results}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[height=0.8\textheight]{img/reduced-1.png}
+                % \caption{Fancy Thing from \textit{Source et al.}}
+            \end{figure}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[height=0.7\textheight]{img/reduced-2.png}
+                % \caption{Fancy Thing from \textit{Source et al.}}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Model comparisons}
+    \begin{rows}
+        \begin{row}
+            \begin{cublock}[R Code]
+                \begin{overlayarea}{\textwidth}{\baselineskip}
+                    {anova(model, model1, test = "Chisq")}
+                \end{overlayarea}
+            \end{cublock}
+        \end{row}
+        \begin{row}
+            \begin{tabular}{c c c c c c c}
+                Model #  & Resid.  & Df Resid.  & Df  & Deviance & Pr(\textgreater Chi) \\
+                \hline
+                \tikzmark{a11}model & \tikzmark{a11}8429 & \tikzmark{a11}987386 & \\
+                \tikzmark{a21}model1  & \tikzmark{a22}8430 & \tikzmark{a23}998019 & \tikzmark{a24}-1  & \tikzmark{a14}-10633 & \tikzmark{a14} \textless 2.2e-16 & \tikzmark{a14}***\\
+            \end{tabular}
+        \end{row}
+    \end{rows}
+\end{frame}
+
+\begin{frame}{Limitations}
+    \begin{itemize}
+        \item \textbf{Offset}: while in our project we assumed that the lack of an offset
+wouldn’t affect our models too much, this might have been a faulty assumption
+        \item \textbf{Temporal considerations}: our project did not present a time series analysis, and failing to account for it, could have a significant effect on the results
+        \item \textbf{Equidispersion}: the poisson model we implemented assumes the equidispersion of our data. This assumption is often violated with real-life data and future research should look into it
+    \end{itemize}
+\end{frame}
+
+\section{Conclusions}
+
+\begin{frame}{Conclusions}
+    \begin{itemize}
+        \item Exploratory data analysis
+reinforced the notion of a significant correlation between the weather experienced, the hour of the day, and the number of bikes rented
+        \item The visual correlations we saw were mostly confirmed by our Poisson model
+        \item Addressing the identified
+limitations in future research will help us understand these relationships even further
+    \end{itemize}
+\end{frame}
+
+% Q&A
+\begin{frame}[standout]
+    \Huge\textsc{Thank you}
+\end{frame}
+
+\appendix
+
+\end{document}
