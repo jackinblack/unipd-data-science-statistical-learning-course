@@ -249,7 +249,7 @@ lines(loess.smooth(data$Temperature, data$Rented.Bike.Count), lty = 1, col = 1);
 ```
 
 This plot shows us how bike shares are indeed influenced by temperature in a mostly linear manner.
-The legend helps to further analyze seasonal patterns: winter and summer are positioned on opposite ends of the temperature spectrum, with winter assiciated to lower temperatures and bike shares and summer associated to higher temperatures and increased bike shares. Spring and autumn are clustered in the middle range of temperatures associated to moderate bike shares. This seasonal variation suggests that temperature and season significantly influence target behavior.
+The legend helps to further analyze seasonal patterns: winter and summer are positioned on opposite ends of the temperature spectrum, with winter associated to lower temperatures and bike shares and summer associated to higher temperatures and increased bike shares. Spring and autumn are clustered in the middle range of temperatures associated to moderate bike shares. This seasonal variation suggests that temperature and season significantly influence target behavior.
 
 ```{r}
 palette <- colorRampPalette( c("#1D4E89", "#D0E1F9", "#1D4E89") )(24);
